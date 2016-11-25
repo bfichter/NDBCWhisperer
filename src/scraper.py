@@ -1,29 +1,35 @@
 from lxml import html
 import requests
 
-stationID = '44013'
-page = requests.get('http://www.ndbc.noaa.gov/station_page.php?station=' + stationID)
-tree = html.fromstring(page.content)
-
-xPathPrefix = '//*[@id="contenttable"]/tr/td[3]/table/tr[td = '
-xPathSuffix = ']/td[3]/text()'
-
-# Main box variables
-windDirection = tree.xpath(xPathPrefix +  '"Wind Direction (WDIR):"' + xPathSuffix)
-windSpeed = tree.xpath(xPathPrefix + '"Wind Speed (WSPD):"' + xPathSuffix)
-windGust = tree.xpath(xPathPrefix + '"Wind Gust (GST):"' + xPathSuffix)
-waveHeight = tree.xpath(xPathPrefix + '"Wave Height (WVHT):"' + xPathSuffix)
-dominantPeriod = tree.xpath(xPathPrefix + '"Dominant Wave Period (DPD):"' + xPathSuffix)
-averagePeriod = tree.xpath(xPathPrefix + '"Average Period (APD):"' + xPathSuffix)
-meanWaveDirection = tree.xpath(xPathPrefix + '"Mean Wave Direction (MWD):"' + xPathSuffix)
-airTemperature = tree.xpath(xPathPrefix + '"Air Temperature (ATMP):"' + xPathSuffix)
-
-
-
-print windDirection
-print windSpeed
-print windGust
-print waveHeight
-print dominantPeriod
-print meanWaveDirection
-print airTemperature
+class Scraper:
+    def __init__(self, stationID):
+        self.stationID = stationID
+        self.xPathPrefix = '//*[@id="contenttable"]/tr/td[3]/table/tr[td = '
+        self.xPathSuffix = ']/td[3]/text()'
+    
+    def scrape(self):
+        page = requests.get('http://www.ndbc.noaa.gov/station_page.php?station=' + self.stationID)
+        self.tree = html.fromstring(page.content)
+        
+        # Main box variables
+        windDirection = self.grabFromTree('"Wind Direction (WDIR):"')
+        windSpeed = self.grabFromTree('"Wind Speed (WSPD):"')
+        windGust = self.grabFromTree('"Wind Gust (GST):"')
+        waveHeight = self.grabFromTree('"Wave Height (WVHT):"')
+        dominantPeriod = self.grabFromTree('"Dominant Wave Period (DPD):"')
+        averagePeriod = self.grabFromTree('"Average Period (APD):"')
+        meanWaveDirection = self.grabFromTree('"Mean Wave Direction (MWD):"')
+        airTemperature = self.grabFromTree('"Air Temperature (ATMP):"')
+        print windDirection
+        print windSpeed
+        print windGust
+        print waveHeight
+        print dominantPeriod
+        print averagePeriod
+        print meanWaveDirection
+        print airTemperature
+        
+    # Grab the raw string from the parsed tree with xPath
+    def grabFromTree(self, variableDescription):
+        return self.tree.xpath(self.xPathPrefix +  variableDescription + self.xPathSuffix)
+    
