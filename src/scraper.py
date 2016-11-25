@@ -22,14 +22,29 @@ class Scraper:
         meanWaveDirection = self.grabDirectionTupleFromString(self.grabFromTree('"Mean Wave Direction (MWD):"'))
         airTemperature = self.grabNumberFromString(self.grabFromTree('"Air Temperature (ATMP):"'))
         
-        print windDirection
-        print windSpeed
-        print windGust
-        print waveHeight
-        print dominantPeriod
-        print averagePeriod
-        print meanWaveDirection
-        print airTemperature
+        # Secondary box variables
+        significantWaveHeight = self.grabNumberFromString(self.grabFromTree('"Significant Wave Height (WVHT):"'))
+        swellHeight = self.grabNumberFromString(self.grabFromTree('"Swell Height (SwH):"'))
+        swellPeriod = self.grabNumberFromString(self.grabFromTree('"Swell Period (SwP):"'))
+        swellDirection = self.grabCompassFromString(self.grabFromTree('"Swell Direction (SwD):"'))
+        windWaveHeight = self.grabNumberFromString(self.grabFromTree('"Wind Wave Height (WWH):"'))
+        windWavePeriod = self.grabNumberFromString(self.grabFromTree('"Wind Wave Period (WWP):"'))
+        windWaveDirection = self.grabCompassFromString(self.grabFromTree('"Wind Wave Direction (WWD):"'))
+        averageWavePeriod = self.grabNumberFromString(self.grabFromTree('"Average Wave Period (APD):"'))
+        
+        # Grab the time
+        print significantWaveHeight
+        print swellHeight
+        print swellPeriod
+        print swellDirection
+        print windWaveHeight
+        print windWavePeriod
+        print windWaveDirection
+        print averageWavePeriod
+        
+        localTime = self.grabLocalTime()
+        
+        print localTime
         
     def grabFromTree(self, variableDescription):
         valueList = self.tree.xpath(self.xPathPrefix +  variableDescription + self.xPathSuffix)
@@ -66,4 +81,26 @@ class Scraper:
             return None
         else:
             return (compass, velocity)
+        
+    def grabLocalTime(self):
+        timeList = self.tree.xpath('//*[@id="contenttable"]/tr/td[3]/table[2]/caption/text()[2]')
+        
+        if len(timeList) == 0:
+            return None
+        
+        rawTime = timeList[0]
+        
+        # rawTime should be "<stuff>(5:30 pm est)<stuff>
+        splitList = rawTime.split('(')
+        
+        if len(splitList) < 2:
+            return None
+        
+        firstSplit = splitList[1]
+        splitList = firstSplit.split(')')
+        
+        if len(splitList) < 2:
+            return None
+        
+        return splitList[0]
     
