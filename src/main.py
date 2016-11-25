@@ -1,7 +1,7 @@
 from scraper import Scraper
 
 def main():
-    stationID = '44013'
+    stationID = '46042'
     scraper = Scraper(stationID)
     scraper.scrape()
 

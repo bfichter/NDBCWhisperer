@@ -16,7 +16,7 @@ class Scraper:
         windDirection = self.grabDirectionTupleFromString(self.grabFromTree('"Wind Direction (WDIR):"'))
         windSpeed = self.grabNumberFromString(self.grabFromTree('"Wind Speed (WSPD):"'))
         windGust = self.grabNumberFromString(self.grabFromTree('"Wind Gust (GST):"'))
-        waveHeight = self.grabNumberFromString(self.grabFromTree('"Wave Height (WVHT):"'))
+        waveHeight = self.grabNumberFromString(self.grabFromTree('"Wave Height (WVHT):"')) # this also seems to track 'Significant Wave Height'
         dominantPeriod = self.grabNumberFromString(self.grabFromTree('"Dominant Wave Period (DPD):"'))
         averagePeriod = self.grabNumberFromString(self.grabFromTree('"Average Period (APD):"'))
         meanWaveDirection = self.grabDirectionTupleFromString(self.grabFromTree('"Mean Wave Direction (MWD):"'))
@@ -33,6 +33,17 @@ class Scraper:
         averageWavePeriod = self.grabNumberFromString(self.grabFromTree('"Average Wave Period (APD):"'))
         
         # Grab the time
+        localTime = self.grabLocalTime()
+        
+        print windDirection
+        print windSpeed
+        print windGust
+        print waveHeight
+        print dominantPeriod
+        print averagePeriod
+        print meanWaveDirection
+        print airTemperature
+        
         print significantWaveHeight
         print swellHeight
         print swellPeriod
@@ -41,8 +52,6 @@ class Scraper:
         print windWavePeriod
         print windWaveDirection
         print averageWavePeriod
-        
-        localTime = self.grabLocalTime()
         
         print localTime
         
