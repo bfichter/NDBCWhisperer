@@ -33,7 +33,11 @@ class Scraper:
         averageWavePeriod = self.grabNumberFromString(self.grabFromTree('"Average Wave Period (APD):"'))
         
         # Grab the time
-        localTime = self.grabLocalTime()
+        firstBoxTime = self.grabLocalTime(True)
+        secondBoxTime = self.grabLocalTime(False)
+        
+        # Grab the buoy name 
+        buoyName = self.grabBuoyName()
         
         print windDirection
         print windSpeed
@@ -53,7 +57,10 @@ class Scraper:
         print windWaveDirection
         print averageWavePeriod
         
-        print localTime
+        print firstBoxTime
+        print secondBoxTime
+        
+        print buoyName
         
     def grabFromTree(self, variableDescription):
         valueList = self.tree.xpath(self.xPathPrefix +  variableDescription + self.xPathSuffix)
@@ -91,8 +98,11 @@ class Scraper:
         else:
             return (compass, velocity)
         
-    def grabLocalTime(self):
-        timeList = self.tree.xpath('//*[@id="contenttable"]/tr/td[3]/table[2]/caption/text()[2]')
+    def grabLocalTime(self, isFirstBox):
+        if isFirstBox:
+            timeList = self.tree.xpath('//*[@id="contenttable"]/tr/td[3]/table[2]/caption/text()[2]')
+        else:
+            timeList = self.tree.xpath('//*[@id="contenttable"]/tr/td[3]/table[5]/caption/text()[2]') 
         
         if len(timeList) == 0:
             return None
@@ -112,4 +122,22 @@ class Scraper:
             return None
         
         return splitList[0]
+    
+    def grabBuoyName(self):
+        nameList = self.tree.xpath('//*[@id="contenttable"]/tr/td[3]/h1/text()')
+        
+        if len(nameList) == 0:
+            return None
+        
+        # there are some differences b/w stations here, this seems to catch all of them
+        rawName = nameList[len(nameList) - 1]
+        
+        splitList = rawName.split('-')
+        
+        if len(splitList) < 2:
+            return None
+        
+        name = splitList[1].strip()
+        
+        return name
     
