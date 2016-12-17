@@ -1,66 +1,70 @@
 from lxml import html
+from buoy import Buoy
+from reading import Reading
 import requests
 import re
 
 class Scraper:
-    def __init__(self, stationID):
+    def __init__(self, stationID, db):
         self.stationID = stationID
         self.xPathPrefix = '//*[@id="contenttable"]/tr/td[3]/table/tr[td = '
         self.xPathSuffix = ']/td[3]/text()'
+        self.db = db
     
     def scrape(self):
         page = requests.get('http://www.ndbc.noaa.gov/station_page.php?station=' + self.stationID)
         self.tree = html.fromstring(page.content)
         
+        # setup the dictionaries
+        buoy = {}
+        reading = {}
+        
+        buoy['station_id'] = self.stationID
+        reading['station_id'] = self.stationID
+        
         # Main box variables
         windDirection = self.grabDirectionTupleFromString(self.grabFromTree('"Wind Direction (WDIR):"'))
-        windSpeed = self.grabNumberFromString(self.grabFromTree('"Wind Speed (WSPD):"'))
-        windGust = self.grabNumberFromString(self.grabFromTree('"Wind Gust (GST):"'))
-        waveHeight = self.grabNumberFromString(self.grabFromTree('"Wave Height (WVHT):"')) # this also seems to track 'Significant Wave Height'
-        dominantPeriod = self.grabNumberFromString(self.grabFromTree('"Dominant Wave Period (DPD):"'))
-        averagePeriod = self.grabNumberFromString(self.grabFromTree('"Average Period (APD):"'))
-        meanWaveDirection = self.grabDirectionTupleFromString(self.grabFromTree('"Mean Wave Direction (MWD):"'))
-        airTemperature = self.grabNumberFromString(self.grabFromTree('"Air Temperature (ATMP):"'))
+        reading['wind_direction_compass'] = windDirection[0]
+        reading['wind_direction_angle'] = windDirection[1]
+        reading['wind_speed'] = self.grabNumberFromString(self.grabFromTree('"Wind Speed (WSPD):"'))
+        reading['wind_gust'] = self.grabNumberFromString(self.grabFromTree('"Wind Gust (GST):"'))
+        reading['wave_height'] = self.grabNumberFromString(self.grabFromTree('"Wave Height (WVHT):"')) # this also seems to track 'Significant Wave Height'
+        reading['dominant_period'] = self.grabNumberFromString(self.grabFromTree('"Dominant Wave Period (DPD):"'))
+        reading['average_period'] = self.grabNumberFromString(self.grabFromTree('"Average Period (APD):"'))
+        reading['wave_direction'] = self.grabDirectionTupleFromString(self.grabFromTree('"Mean Wave Direction (MWD):"'))
+        reading['air_temperature'] = self.grabNumberFromString(self.grabFromTree('"Air Temperature (ATMP):"'))
         
         # Secondary box variables
-        significantWaveHeight = self.grabNumberFromString(self.grabFromTree('"Significant Wave Height (WVHT):"'))
-        swellHeight = self.grabNumberFromString(self.grabFromTree('"Swell Height (SwH):"'))
-        swellPeriod = self.grabNumberFromString(self.grabFromTree('"Swell Period (SwP):"'))
-        swellDirection = self.grabCompassFromString(self.grabFromTree('"Swell Direction (SwD):"'))
-        windWaveHeight = self.grabNumberFromString(self.grabFromTree('"Wind Wave Height (WWH):"'))
-        windWavePeriod = self.grabNumberFromString(self.grabFromTree('"Wind Wave Period (WWP):"'))
-        windWaveDirection = self.grabCompassFromString(self.grabFromTree('"Wind Wave Direction (WWD):"'))
-        averageWavePeriod = self.grabNumberFromString(self.grabFromTree('"Average Wave Period (APD):"'))
+        reading['significant_wave_height'] = self.grabNumberFromString(self.grabFromTree('"Significant Wave Height (WVHT):"'))
+        reading['swell_height'] = self.grabNumberFromString(self.grabFromTree('"Swell Height (SwH):"'))
+        reading['swell_period'] = self.grabNumberFromString(self.grabFromTree('"Swell Period (SwP):"'))
+        reading['swell_direction'] = self.grabCompassFromString(self.grabFromTree('"Swell Direction (SwD):"'))
+        reading['wind_wave_height'] = self.grabNumberFromString(self.grabFromTree('"Wind Wave Height (WWH):"'))
+        reading['wind_wave_period'] = self.grabNumberFromString(self.grabFromTree('"Wind Wave Period (WWP):"'))
+        reading['wind_wave_direction'] = self.grabCompassFromString(self.grabFromTree('"Wind Wave Direction (WWD):"'))
+        reading['average_wave_period'] = self.grabNumberFromString(self.grabFromTree('"Average Wave Period (APD):"'))
         
         # Grab the time
-        firstBoxTime = self.grabLocalTime(True)
-        secondBoxTime = self.grabLocalTime(False)
+        reading['first_time'] = self.grabLocalTime(True)
+        reading['second_time'] = self.grabLocalTime(False)
         
         # Grab the buoy name 
-        buoyName = self.grabBuoyName()
+        buoy['name'] = self.grabBuoyName()
         
-        print windDirection
-        print windSpeed
-        print windGust
-        print waveHeight
-        print dominantPeriod
-        print averagePeriod
-        print meanWaveDirection
-        print airTemperature
+        # Instantiate model objects
+        buoyObject = Buoy(**buoy)
+        readingObject = Reading(**reading)
         
-        print significantWaveHeight
-        print swellHeight
-        print swellPeriod
-        print swellDirection
-        print windWaveHeight
-        print windWavePeriod
-        print windWaveDirection
-        print averageWavePeriod
+        readingObject.id = self.db.readings.insert_one(readingObject.mongoDB()).inserted_id
+        self.db.buoys.update({'station_id': self.stationID}, buoyObject.mongoDB(), upsert = True)
         
-        print firstBoxTime
-        print secondBoxTime
-        
-        print buoyName
+        cursor = self.db.buoys.find({})
+        for document in cursor: 
+            print(document)
+            
+        cursor = self.db.readings.find({})
+        for document in cursor: 
+            print(document)
         
     def grabFromTree(self, variableDescription):
         valueList = self.tree.xpath(self.xPathPrefix +  variableDescription + self.xPathSuffix)
@@ -91,12 +95,12 @@ class Scraper:
     
     def grabDirectionTupleFromString(self, rawString):
         compass = self.grabCompassFromString(rawString)
-        velocity = self.grabNumberFromString(rawString)
+        angle = self.grabNumberFromString(rawString)
         
-        if compass is None or velocity is None:
-            return None
+        if compass is None or angle is None:
+            return (None, None)
         else:
-            return (compass, velocity)
+            return (compass, angle)
         
     def grabLocalTime(self, isFirstBox):
         if isFirstBox:
