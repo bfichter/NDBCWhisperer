@@ -13,7 +13,12 @@ class Scraper:
     
     def scrape(self):
         page = requests.get('http://www.ndbc.noaa.gov/station_page.php?station=' + self.stationID)
+        
         self.tree = html.fromstring(page.content)
+        
+        if not self.isValidStation():
+            return
+        
         
         # setup the dictionaries
         buoy = {}
@@ -144,4 +149,14 @@ class Scraper:
         name = splitList[1].strip()
         
         return name
+    
+    def isValidStation(self):
+        titleList = self.tree.xpath('/html/head/title/text()')
+        
+        if len(titleList) == 0:
+            return True
+        
+        title = titleList[0]
+        
+        return title != 'NDBC - Station not found'
     
