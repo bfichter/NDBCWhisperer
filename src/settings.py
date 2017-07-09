@@ -54,7 +54,25 @@ alerts = {
     }
 }
 
+# TODO, disable put post etc
+buoys = {
+    'additional_lookup': {
+        'url': 'regex("[\w]+")',
+        'field': 'station_id'
+    },
+    
+    'schema': {
+        'station_id': {
+            'type': 'string',
+            'required': True,
+            'unique': True
+        },
+        'name': {'type': 'string'}       
+    }
+}
+
 DOMAIN = {
     'users': users,
-    'alerts': alerts
+    'alerts': alerts,
+    'buoys': buoys
 }

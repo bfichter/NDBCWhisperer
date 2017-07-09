@@ -64,12 +64,12 @@ class Scraper:
         self.db.buoys.update({'station_id': self.stationID}, buoyObject.mongoDB(), upsert = True)
         
         cursor = self.db.buoys.find({})
-        for document in cursor: 
-            print(document)
+        #for document in cursor: 
+        #    print(document)
             
         cursor = self.db.readings.find({})
-        for document in cursor: 
-            print(document)
+        #for document in cursor: 
+        #    print(document)
         
     def grabFromTree(self, variableDescription):
         valueList = self.tree.xpath(self.xPathPrefix +  variableDescription + self.xPathSuffix)
@@ -159,4 +159,5 @@ class Scraper:
         title = titleList[0]
         
         return title != 'NDBC - Station not found'
+    
     
