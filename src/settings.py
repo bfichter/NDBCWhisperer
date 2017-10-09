@@ -32,8 +32,8 @@ users = {
 rangeType = {
     'type': 'dict',
     'schema': {
-        'clockwise_start': {'type': 'double'},
-        'clockwise_end': {'type': 'double'}
+        'clockwise_start': {'type': 'number'},
+        'clockwise_end': {'type': 'number'}
     }
 }
 
@@ -43,14 +43,18 @@ alerts = {
              'type': 'string',
              'required': True,
         },
+        'station_id': {
+            'type': 'string',
+            'required': True,
+        },
         'wind_direction_range': rangeType,
         'wave_direction_range': rangeType,
         'swell_direction_range': rangeType,
-        'wind_speed_max': {'type': 'int32'},
-        'wave_height_min': {'type': 'double'},
-        'wave_period_min': {'type': 'int32'},
-        'swell_height_min': {'type': 'double'},
-        'swell_period_min': {'type': 'int32'}
+        'wind_speed_max': {'type': 'integer'},
+        'wave_height_min': {'type': 'number'},
+        'wave_period_min': {'type': 'integer'},
+        'swell_height_min': {'type': 'number'},
+        'swell_period_min': {'type': 'integer'}
     }
 }
 
