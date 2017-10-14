@@ -77,6 +77,10 @@ readings = {
             'type': 'string',
             'required': True
         },
+        'buoy_name': {
+            'type': 'string',
+            'required': True
+        },
         'wind_direction': directionType,
         'wind_speed': {'type': 'number'},
         'wind_gust': {'type': 'number'},

@@ -53,7 +53,9 @@ class Scraper:
         reading['second_time'] = self.grabLocalTime(False)
         
         # Grab the buoy name 
-        buoy['name'] = self.grabBuoyName()
+        buoyName = self.grabBuoyName()
+        buoy['name'] = buoyName
+        reading['buoy_name'] = buoyName
         
         # Remove nulls
         reading = {k: v for k, v in reading.items() if v != None}
