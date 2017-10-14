@@ -29,8 +29,7 @@ class Scraper:
         
         # Main box variables
         windDirection = self.grabDirectionTupleFromString(self.grabFromTree('"Wind Direction (WDIR):"'))
-        reading['wind_direction_compass'] = windDirection[0]
-        reading['wind_direction_angle'] = windDirection[1]
+        reading['wind_direction'] = windDirection
         reading['wind_speed'] = self.grabNumberFromString(self.grabFromTree('"Wind Speed (WSPD):"'))
         reading['wind_gust'] = self.grabNumberFromString(self.grabFromTree('"Wind Gust (GST):"'))
         reading['wave_height'] = self.grabNumberFromString(self.grabFromTree('"Wave Height (WVHT):"')) # this also seems to track 'Significant Wave Height'
@@ -105,7 +104,10 @@ class Scraper:
         if compass is None or angle is None:
             return (None, None)
         else:
-            return (compass, angle)
+            return {
+                'compass': compass,
+                'angle': angle
+            }
         
     def grabLocalTime(self, isFirstBox):
         if isFirstBox:

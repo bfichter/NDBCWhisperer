@@ -58,6 +58,47 @@ alerts = {
     }
 }
 
+directionType = {
+    'type': 'dict',
+    'schema': {
+        'compass': {'type': 'string'},
+        'angle': {'type': 'number'}
+    }
+}
+
+readings = {
+    'additional_lookup': {
+        'url': 'regex("[\w]+")',
+        'field': 'station_id'
+    },
+    
+    'schema': {
+        'station_id': {
+            'type': 'string',
+            'required': True
+        },
+        'wind_direction': directionType,
+        'wind_speed': {'type': 'number'},
+        'wind_gust': {'type': 'number'},
+        'wind_height': {'type': 'number'},
+        'wave_height': {'type': 'number'},
+        'dominant_period': {'type': 'number'},
+        'average_period': {'type': 'number'},
+        'wave_direction': directionType,
+        'air_temperature': {'type': 'number'},
+        'significant_wave_height': {'type': 'number'},
+        'swell_height': {'type': 'number'},
+        'swell_period': {'type': 'number'},
+        'swell_direction': {'type': 'string'},
+        'wind_wave_height': {'type': 'number'},
+        'wind_wave_period': {'type': 'number'},
+        'wind_wave_direction': {'type': 'string'},
+        'average_wave_period': {'type': 'number'},
+        'first_time': {'type': 'string'},
+        'second_time': {'type': 'string'}
+    }
+}
+
 # TODO, disable put post etc
 buoys = {
     'additional_lookup': {
@@ -71,12 +112,13 @@ buoys = {
             'required': True,
             'unique': True
         },
-        'name': {'type': 'string'}       
+        'name': {'type': 'string'}
     }
 }
 
 DOMAIN = {
     'users': users,
     'alerts': alerts,
+    'readings': readings,
     'buoys': buoys
 }

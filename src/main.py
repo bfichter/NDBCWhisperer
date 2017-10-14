@@ -2,7 +2,7 @@ from scraper import Scraper
 from pymongo import MongoClient
 
 def main():
-    stationID = '44008'
+    stationID = '42040'
     client = MongoClient('localhost', 27017)
     db = client.ndbc
     scraper = Scraper(stationID, db)
