@@ -55,20 +55,24 @@ class Scraper:
         # Grab the buoy name 
         buoy['name'] = self.grabBuoyName()
         
+        # Remove nulls
+        reading = {k: v for k, v in reading.items() if v != None}
+        
         # Instantiate model objects
         buoyObject = Buoy(**buoy)
         readingObject = Reading(**reading)
         
-        readingObject.id = self.db.readings.insert_one(readingObject.mongoDB()).inserted_id
+        #readingObject.id = self.db.readings.insert_one(readingObject.mongoDB()).inserted_id
+        self.db.readings.update({'station_id': self.stationID}, readingObject.mongoDB(), upsert = True)
         self.db.buoys.update({'station_id': self.stationID}, buoyObject.mongoDB(), upsert = True)
         
-        cursor = self.db.buoys.find({})
+        #cursor = self.db.buoys.find({})
         #for document in cursor: 
         #    print(document)
             
-        cursor = self.db.readings.find({})
-        #for document in cursor: 
-        #    print(document)
+#         cursor = self.db.readings.find({})
+#         for document in cursor: 
+#             print(document)
         
     def grabFromTree(self, variableDescription):
         valueList = self.tree.xpath(self.xPathPrefix +  variableDescription + self.xPathSuffix)
@@ -102,7 +106,7 @@ class Scraper:
         angle = self.grabNumberFromString(rawString)
         
         if compass is None or angle is None:
-            return (None, None)
+            return None
         else:
             return {
                 'compass': compass,
