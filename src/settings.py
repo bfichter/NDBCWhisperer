@@ -5,6 +5,7 @@ MONGO_PORT = 27017
 #MONGO_PASSWORD = '<your password>'
 MONGO_DBNAME = 'ndbc'
 #DEBUG = True
+IF_MATCH = False
 
 RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
 ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
