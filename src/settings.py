@@ -15,17 +15,17 @@ users = {
     
     'additional_lookup': {
         'url': 'regex("[\w]+")',
-        'field': 'number'
+        'field': 'user_id'
     },
     
     'schema': {
-        'number': {
+        'user_id': {
             'type': 'string',
             'required': True,
             'unique': True
         },
         'token': {
-            'type': 'string',
+            'type': 'list'
         }       
     }
 }
@@ -40,7 +40,7 @@ rangeType = {
 
 alerts = {
     'schema': {
-        'number': {
+        'user_id': {
              'type': 'string',
              'required': True,
         },
