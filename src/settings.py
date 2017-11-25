@@ -30,6 +30,24 @@ users = {
     }
 }
 
+devices = {
+    'additional_lookup': {
+        'url': 'regex("[\w]+")',
+        'field': 'token'
+    },
+    'schema': {
+        'token': {
+            'type': 'string',
+            'required': True,
+            'unique': True
+        },
+        'user_id': {
+            'type': 'string',
+            'required': True
+        }
+    }
+}
+
 rangeType = {
     'type': 'dict',
     'schema': {
@@ -123,6 +141,7 @@ buoys = {
 
 DOMAIN = {
     'users': users,
+    'devices': devices,
     'alerts': alerts,
     'readings': readings,
     'buoys': buoys
