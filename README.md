@@ -8,4 +8,6 @@
 # mongodb
 # brew install mongodb --with-openssl
 
+# PyAPNs2
+# easy_install apns2
 
