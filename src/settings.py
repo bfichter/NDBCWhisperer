@@ -3,6 +3,8 @@ MONGO_PORT = 27017
 #TODO
 #MONGO_USERNAME = '<your username>'
 #MONGO_PASSWORD = '<your password>'
+# Should maybe split this into two DBs
+# 'ndbc' for buoy stuff and 'users' for other stuff 
 MONGO_DBNAME = 'ndbc'
 #DEBUG = True
 IF_MATCH = False
