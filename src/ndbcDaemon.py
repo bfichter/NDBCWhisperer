@@ -30,10 +30,9 @@ class NDBCDaemon:
             for alert in db.alerts.find({'user_id': userID}):
                 # Could optimize by maintaining a dict of Readings
                 # Not sure how slow Mongo lookups will be
-                
-                # TODO guard against an unfound station_id
                 reading = db.readings.find_one({'station_id': alert['station_id']})
-                if self.isFulfilled(alert, reading):
+                
+                if reading is not None and self.isFulfilled(alert, reading):
                     print('----FULFILLED-----')
                     print('Alert Is:')
                     print(alert)
@@ -47,7 +46,10 @@ class NDBCDaemon:
                     print(alert)
                     print('Reading Is:')
                     print(reading)
-                    print('END NOT FULFILLED')    
+                    print('END NOT FULFILLED')
+            
+            # look at alerts
+            # size is number of active reports
         # Get all users
             # Get all alerts
             # Figure out which alerts are valid
@@ -91,13 +93,60 @@ class NDBCDaemon:
             
             if reading['swell_period'] < alert['swell_period_min']:
                 return False
+            
+        if 'wind_direction_range' in alert:
+            if 'wind_direction' not in reading:
+                return False
+            
+            if not self.isRangeFulfilled(alert['wind_direction_range'], reading['wind_direction']):
+                return False
         
+        if 'wind_direction_range' in alert:
+            if 'wind_direction' not in reading:
+                return False
+            
+            if not self.isRangeFulfilled(alert['wind_direction_range'], reading['wind_direction']):
+                return False
+        
+        if 'wave_direction_range' in alert:
+            if 'wave_direction' not in reading:
+                return False
+            
+            if not self.isRangeFulfilled(alert['wave_direction_range'], reading['wave_direction']):
+                return False
+            
+        if 'swell_direction_range' in alert:
+            if 'swell_direction' not in reading:
+                return False
+            
+            if not self.isRangeFulfilled(alert['swell_direction_range'], reading['swell_direction']):
+                return False
             
         # Got through the gauntlet, this alert is valid
         return True
     
-    
-    
-    
+    # Parameters are rangeType and directionType defined in settings.py
+    # Logic/naming mirrors client logic/naming
+    def isRangeFulfilled(self, directionRange, direction):
+        requiredClockwiseStart = directionRange['clockwise_start']
+        requiredClockwiseEnd = directionRange['clockwise_end']
+        readingAngle = direction['angle']
+        
+        if requiredClockwiseStart is None or requiredClockwiseEnd is None or readingAngle is None:
+            return False
+        
+        if requiredClockwiseStart < requiredClockwiseEnd:
+            return readingAngle >= requiredClockwiseStart and readingAngle <= requiredClockwiseEnd
+        
+        if requiredClockwiseStart > requiredClockwiseEnd:
+            if readingAngle >= requiredClockwiseStart and readingAngle <= 360:
+                return True
+            
+            if readingAngle <= requiredClockwiseEnd and readingAngle >= 0:
+                return True
+            
+            return False
+        
+        return readingAngle == requiredClockwiseStart and readingAngle == requiredClockwiseEnd
     
     
