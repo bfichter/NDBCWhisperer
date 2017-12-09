@@ -10,7 +10,7 @@ class NDBCDaemon:
         
         client = MongoClient('localhost', 27017)
         db = client.ndbc
-        #self.refreshReadings(db)
+        self.refreshReadings(db)
         self.notifyUsers(db)
         client.close()
     
@@ -48,14 +48,13 @@ class NDBCDaemon:
                     print(reading)
                     print('END NOT FULFILLED')
             
-            # look at alerts
-            # size is number of active reports
-        # Get all users
-            # Get all alerts
-            # Figure out which alerts are valid
-            # Compile into a message
-            # Get all devices for that user
-            # and blast off a note to each device
+            count = len(alerts)
+            message = str(count) + " active alerts kook. This message sucks and needs to be better"
+            for device in db.devices.find({'user_id': userID}):
+                try:
+                    notifier.send(device['token'], message, count, False)
+                except:
+                    print("APNS error, couldn't send to " + device['token']) 
             
     # we should actually get some tests on this, gonna be fucked otherwise        
     def isFulfilled(self, alert, reading):
