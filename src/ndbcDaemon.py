@@ -10,7 +10,7 @@ class NDBCDaemon:
         
         client = MongoClient('localhost', 27017)
         db = client.ndbc
-        self.refreshReadings(db)
+        #self.refreshReadings(db)
         self.notifyUsers(db)
         client.close()
     
@@ -25,13 +25,79 @@ class NDBCDaemon:
         notifier = Notifier()
         for user in db.users.find():
             userID = user['user_id']
+            print(userID)
             alerts = []
             for alert in db.alerts.find({'user_id': userID}):
-                print(alert)
-                # I think this should work, but gotta clear out old users
+                # Could optimize by maintaining a dict of Readings
+                # Not sure how slow Mongo lookups will be
+                
+                # TODO guard against an unfound station_id
+                reading = db.readings.find_one({'station_id': alert['station_id']})
+                if self.isFulfilled(alert, reading):
+                    print('----FULFILLED-----')
+                    print('Alert Is:')
+                    print(alert)
+                    print('Reading Is:')
+                    print(reading)
+                    print('_End_Fulfilled_')
+                    alerts.append(alert)
+                else:
+                    print('NOT FULFILLED')
+                    print('Alert Is:')
+                    print(alert)
+                    print('Reading Is:')
+                    print(reading)
+                    print('END NOT FULFILLED')    
         # Get all users
             # Get all alerts
             # Figure out which alerts are valid
             # Compile into a message
             # Get all devices for that user
             # and blast off a note to each device
+            
+    # we should actually get some tests on this, gonna be fucked otherwise        
+    def isFulfilled(self, alert, reading):
+        if 'wind_speed_max' in alert:
+            if 'wind_speed' not in reading:
+                return False
+            
+            if reading['wind_speed'] > alert['wind_speed_max']:
+                return False
+        
+        if 'wave_height_min' in alert:
+            if 'wave_height' not in reading:
+                return False
+            
+            if reading['wave_height'] < alert['wave_height_min']:
+                return False
+            
+        if 'wave_period_min' in alert:
+            if 'wave_period' not in reading:
+                return False
+            
+            if reading['wave_period'] < alert['wave_period_min']:
+                return False
+        
+        if 'swell_height_min' in alert:
+            if 'swell_height' not in reading:
+                return False
+            
+            if reading['swell_height'] < alert['swell_height_min']:
+                return False
+            
+        if 'swell_period_min' in alert:
+            if 'swell_period' not in reading:
+                return False
+            
+            if reading['swell_period'] < alert['swell_period_min']:
+                return False
+        
+            
+        # Got through the gauntlet, this alert is valid
+        return True
+    
+    
+    
+    
+    
+    
