@@ -10,4 +10,4 @@ class Notifier:
         payload = Payload(alert=message, sound="default", badge=count)
         topic = 'com.bfichter.KookMachine'
         self.client.send_notification(token, payload, topic)
-         
+        

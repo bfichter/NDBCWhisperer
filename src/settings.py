@@ -1,4 +1,6 @@
-MONGO_HOST = 'localhost'
+# MONGO_HOST = 'localhost'
+# MONGO_PORT = 27017
+MONGO_HOST = 'http://159.89.255.198'
 MONGO_PORT = 27017
 #TODO
 #MONGO_USERNAME = '<your username>'
