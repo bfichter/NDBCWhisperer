@@ -3,7 +3,8 @@ from apns2.payload import Payload
 
 class Notifier:
     def __init__(self):
-        self.client = APNsClient('kmDevPush.pem', use_sandbox=True, use_alternative_port=False)
+        #self.client = APNsClient('kmDevPush.pem', use_sandbox=True, use_alternative_port=False)
+        self.client = APNsClient('kmProdPush.pem', use_sandbox=False, use_alternative_port=False)
         
     def send(self, token, message, count, isSilent):
         # TODO utilize isSilent
