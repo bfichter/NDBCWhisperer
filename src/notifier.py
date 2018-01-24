@@ -1,9 +1,6 @@
 from apns2.client import APNsClient
 from apns2.payload import Payload
-import yaml
-
-with open("config.yml", 'r') as ymlfile:
-    config = yaml.load(ymlfile)
+from config import config
 
 apnsConfig = config['apns']
 cert = apnsConfig['cert']

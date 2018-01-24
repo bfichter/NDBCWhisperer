@@ -1,8 +1,5 @@
 from pymongo import MongoClient
-import yaml
-
-with open("config.yml", 'r') as ymlfile:
-    config = yaml.load(ymlfile)
+from config import config
 
 mongoConfig = config['mongo']
 debug = config['general']['debug']

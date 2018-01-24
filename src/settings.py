@@ -1,7 +1,4 @@
-import yaml
-
-with open("config.yml", 'r') as ymlfile:
-    config = yaml.load(ymlfile)
+from config import config
 
 mongoConfig = config['mongo']
 MONGO_HOST = mongoConfig['host']
