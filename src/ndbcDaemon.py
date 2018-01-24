@@ -1,5 +1,5 @@
 from scraper import Scraper
-from pymongo import MongoClient
+from ndbcMongoClient import NDBCMongoClient
 from notifier import Notifier
 
 class NDBCDaemon:
@@ -7,9 +7,7 @@ class NDBCDaemon:
         #push test
         #notifier = Notifier()
         #notifier.send('5886e435dadfbd10f15df6e8f2c73b7eecb7de9eaa9e5becb31f83894ed707a1', 'Test Message', 1, False)
-        
-        # TODO, read from config file here too, and authenticate with cha boys user (maybe make a different user for metrics?)
-        client = MongoClient('localhost', 27017)
+        client = NDBCMongoClient().client
         db = client.ndbc
         self.refreshReadings(db)
         self.notifyUsers(db)

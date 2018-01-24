@@ -1,10 +1,9 @@
 from eve import Eve
 from scraper import Scraper
-from pymongo import MongoClient
+from ndbcMongoClient import NDBCMongoClient
 
 def pre_buoys_get_callback(request, lookup):
-    # centralize this client I'd say
-    client = MongoClient('localhost', 27017)
+    client = NDBCMongoClient().client
     stationID = lookup["station_id"]
     db = client.ndbc
     # clean all this up

@@ -1,8 +1,14 @@
-MONGO_HOST = 'localhost'
-MONGO_PORT = 27017
-#TODO
-#MONGO_USERNAME = '<your username>'
-#MONGO_PASSWORD = '<your password>'
+import yaml
+
+with open("config.yml", 'r') as ymlfile:
+    config = yaml.load(ymlfile)
+
+mongoConfig = config['mongo']
+MONGO_HOST = mongoConfig['host']
+MONGO_PORT = mongoConfig['port']
+if not config['general']['debug']:
+    MONGO_USERNAME = mongoConfig['username']
+    MONGO_PASSWORD = mongoConfig['password']
 # Should maybe split this into two DBs
 # 'ndbc' for buoy stuff and 'users' for other stuff 
 MONGO_DBNAME = 'ndbc'
