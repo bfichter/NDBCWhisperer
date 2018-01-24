@@ -1,3 +1,5 @@
 *.pyc
 *.py.swap
 *.pem
+*.DS_Store
+*config.yml
