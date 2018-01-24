@@ -3,6 +3,7 @@ from scraper import Scraper
 from pymongo import MongoClient
 
 def pre_buoys_get_callback(request, lookup):
+    # centralize this client I'd say
     client = MongoClient('localhost', 27017)
     stationID = lookup["station_id"]
     db = client.ndbc
