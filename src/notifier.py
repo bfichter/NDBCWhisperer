@@ -11,8 +11,11 @@ class Notifier:
         self.client = APNsClient(cert, use_sandbox=sandbox, use_alternative_port=False)
         
     def send(self, token, message, count, isSilent):
-        # TODO utilize isSilent
-        payload = Payload(alert=message, sound="default", badge=count)
+        if isSilent:
+            payload = Payload(contentAvailable=True, badge=count)
+        else:
+            # TODO create custom sound (more so on client)
+            payload = Payload(alert=message, sound="default", badge=count)
         topic = 'com.bfichter.KookMachine'
         self.client.send_notification(token, payload, topic)
         

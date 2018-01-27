@@ -26,10 +26,12 @@ class NDBCDaemon:
             userID = user['user_id']
             print(userID)
             alerts = []
+            readings = {}
             for alert in db.alerts.find({'user_id': userID}):
                 # Could optimize by maintaining a dict of Readings
                 # Not sure how slow Mongo lookups will be
-                reading = db.readings.find_one({'station_id': alert['station_id']})
+                stationID = alert['station_id']
+                reading = db.readings.find_one({'station_id': stationID})
                 
                 if reading is not None and self.isFulfilled(alert, reading):
                     print('----FULFILLED-----')
@@ -39,6 +41,7 @@ class NDBCDaemon:
                     print(reading)
                     print('_End_Fulfilled_')
                     alerts.append(alert)
+                    readings[stationID] = reading
                 else:
                     print('NOT FULFILLED')
                     print('Alert Is:')
@@ -48,10 +51,16 @@ class NDBCDaemon:
                     print('END NOT FULFILLED')
             
             count = len(alerts)
-            message = str(count) + " active alerts kook. This message sucks and needs to be better"
+            # TODO have preferences which affect isSilent logic
+            isSilent = count == 0
+            message = str(count) + " active alerts:\n"
+            for stationID, reading in readings.iteritems():
+                message += "    " + self.shortDescription(stationID, reading) + "\n"
+            message += "Get on it kook!"
+            
             for device in db.devices.find({'user_id': userID}):
                 try:
-                    notifier.send(device['token'], message, count, False)
+                    notifier.send(device['token'], message, count, isSilent)
                 except:
                     print("APNS error, couldn't send to " + device['token']) 
             
@@ -140,4 +149,9 @@ class NDBCDaemon:
         
         return readingAngle == requiredClockwiseStart and readingAngle == requiredClockwiseEnd
     
-    
+    def shortDescription(self, stationID, reading):
+        if 'wave_height' not in reading or 'wave_period' not in reading:
+            return stationID + ": good rn"
+        waveHeight = reading['wave_height']
+        wavePeriod = reading['wave_period']
+        return stationID + ": " + waveHeight + "ft @" + wavePeriod + "sec"
