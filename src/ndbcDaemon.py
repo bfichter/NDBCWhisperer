@@ -82,11 +82,10 @@ class NDBCDaemon:
                 return False
             
         if 'wave_period_min' in alert:
-            # I think this is dominant period or something?
-            if 'wave_period' not in reading:
+            if 'dominant_period' not in reading:
                 return False
             
-            if reading['wave_period'] < alert['wave_period_min']:
+            if reading['dominant_period'] < alert['wave_period_min']:
                 return False
         
         if 'swell_height_min' in alert:
@@ -155,11 +154,8 @@ class NDBCDaemon:
         return False
     
     def shortDescription(self, stationID, reading):
-        print("CONSTRUCTING SHORT DESCRIPTION")
-        print(reading)
-        # I think it's dominant Period or something?
-        if 'wave_height' not in reading or 'wave_period' not in reading:
+        if 'wave_height' not in reading or 'dominant_period' not in reading:
             return stationID + ": good rn"
         waveHeight = reading['wave_height']
-        wavePeriod = reading['wave_period']
+        wavePeriod = reading['dominant_period']
         return stationID + ": " + waveHeight + "ft @" + wavePeriod + "sec"
