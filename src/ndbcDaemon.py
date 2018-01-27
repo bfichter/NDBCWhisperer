@@ -91,13 +91,6 @@ class NDBCDaemon:
             
             if reading['swell_period'] < alert['swell_period_min']:
                 return False
-            
-        if 'wind_direction_range' in alert:
-            if 'wind_direction' not in reading:
-                return False
-            
-            if not self.isRangeFulfilled(alert['wind_direction_range'], reading['wind_direction']):
-                return False
         
         if 'wind_direction_range' in alert:
             if 'wind_direction' not in reading:
