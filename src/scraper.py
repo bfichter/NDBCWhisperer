@@ -1,6 +1,7 @@
 from lxml import html
 from buoy import Buoy
 from reading import Reading
+from compass import compassDict
 import requests
 import re
 
@@ -28,8 +29,7 @@ class Scraper:
         reading['station_id'] = self.stationID
         
         # Main box variables
-        windDirection = self.grabDirectionTupleFromString(self.grabFromTree('"Wind Direction (WDIR):"'))
-        reading['wind_direction'] = windDirection
+        reading['wind_direction'] = self.grabDirectionTupleFromString(self.grabFromTree('"Wind Direction (WDIR):"'))
         reading['wind_speed'] = self.grabNumberFromString(self.grabFromTree('"Wind Speed (WSPD):"'))
         reading['wind_gust'] = self.grabNumberFromString(self.grabFromTree('"Wind Gust (GST):"'))
         reading['wave_height'] = self.grabNumberFromString(self.grabFromTree('"Wave Height (WVHT):"')) # this also seems to track 'Significant Wave Height'
@@ -42,10 +42,10 @@ class Scraper:
         reading['significant_wave_height'] = self.grabNumberFromString(self.grabFromTree('"Significant Wave Height (WVHT):"'))
         reading['swell_height'] = self.grabNumberFromString(self.grabFromTree('"Swell Height (SwH):"'))
         reading['swell_period'] = self.grabNumberFromString(self.grabFromTree('"Swell Period (SwP):"'))
-        reading['swell_direction'] = self.grabCompassFromString(self.grabFromTree('"Swell Direction (SwD):"'))
+        reading['swell_direction'] = self.constructDirectionTupleFromString(self.grabFromTree('"Swell Direction (SwD):"'))
         reading['wind_wave_height'] = self.grabNumberFromString(self.grabFromTree('"Wind Wave Height (WWH):"'))
         reading['wind_wave_period'] = self.grabNumberFromString(self.grabFromTree('"Wind Wave Period (WWP):"'))
-        reading['wind_wave_direction'] = self.grabCompassFromString(self.grabFromTree('"Wind Wave Direction (WWD):"'))
+        reading['wind_wave_direction'] = self.constructDirectionTupleFromString(self.grabFromTree('"Wind Wave Direction (WWD):"'))
         reading['average_wave_period'] = self.grabNumberFromString(self.grabFromTree('"Average Wave Period (APD):"'))
         
         # Grab the time
@@ -103,6 +103,7 @@ class Scraper:
         else:
             return None
     
+    # This is for directions that have a specified angle (i.e 'SE (direction 320 degrees true)')
     def grabDirectionTupleFromString(self, rawString):
         compass = self.grabCompassFromString(rawString)
         angle = self.grabNumberFromString(rawString)
@@ -114,6 +115,22 @@ class Scraper:
                 'compass': compass,
                 'angle': angle
             }
+    
+    # This is for directions that don't have the angle (i.e just 'SE')
+    def constructDirectionTupleFromString(self, rawString):
+        compass = self.grabCompassFromString(rawString)
+        
+        if compass is None:
+            return None
+        angle = compassDict.get(compass, None)
+        
+        if angle is None:
+            return None
+        
+        return {
+            'compass': compass,
+            'angle': angle
+        }
         
     def grabLocalTime(self, isFirstBox):
         if isFirstBox:

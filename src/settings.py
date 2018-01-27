@@ -117,10 +117,10 @@ readings = {
         'significant_wave_height': {'type': 'number'},
         'swell_height': {'type': 'number'},
         'swell_period': {'type': 'number'},
-        'swell_direction': {'type': 'string'},
+        'swell_direction': directionType,
         'wind_wave_height': {'type': 'number'},
         'wind_wave_period': {'type': 'number'},
-        'wind_wave_direction': {'type': 'string'},
+        'wind_wave_direction': directionType,
         'average_wave_period': {'type': 'number'},
         'first_time': {'type': 'string'},
         'second_time': {'type': 'string'}
