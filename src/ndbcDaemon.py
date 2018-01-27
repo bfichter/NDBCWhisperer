@@ -120,7 +120,7 @@ class NDBCDaemon:
             if 'swell_direction' not in reading:
                 return False
             
-            if not self.isRangeFulfilledByCompassString(alert['swell_direction_range'], reading['swell_direction']):
+            if not self.isRangeFulfilled(alert['swell_direction_range'], reading['swell_direction']['angle']):
                 return False
             
         # Got through the gauntlet, this alert is valid
@@ -148,10 +148,6 @@ class NDBCDaemon:
             return False
         
         return readingAngle == requiredClockwiseStart and readingAngle == requiredClockwiseEnd
-    
-    def isRangeFulfilledByCompassString(self, directionRange, compassString):
-        # TODO actually add this back, and make all readings have direction
-        return False
     
     def shortDescription(self, stationID, reading):
         if 'wave_height' not in reading or 'dominant_period' not in reading:
