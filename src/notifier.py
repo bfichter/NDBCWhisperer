@@ -12,7 +12,7 @@ class Notifier:
         
     def send(self, token, message, count, isSilent):
         if isSilent:
-            payload = Payload(contentAvailable=True, badge=count)
+            payload = Payload(content_available=True, badge=count)
         else:
             # TODO create custom sound (more so on client)
             payload = Payload(alert=message, sound="default", badge=count)
