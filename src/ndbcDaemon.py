@@ -53,7 +53,8 @@ class NDBCDaemon:
             count = len(alerts)
             # TODO have preferences which affect isSilent logic
             isSilent = count == 0
-            message = str(count) + " active alerts:\n"
+            alertString = "alert" if count == 1 else "alerts"
+            message = str(count) + " active " + alertString + ":\n"
             for stationID, reading in readings.iteritems():
                 message += "    " + self.shortDescription(stationID, reading) + "\n"
             message += "Get on it, kook!"
@@ -157,4 +158,4 @@ class NDBCDaemon:
             return stationID + ": good rn"
         waveHeight = str(reading['wave_height'])
         wavePeriod = str(reading['dominant_period'])
-        return stationID + ": " + waveHeight + "ft @" + wavePeriod + "sec"
+        return stationID + ": " + waveHeight + "ft @ " + wavePeriod + "sec"
