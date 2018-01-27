@@ -56,9 +56,10 @@ class NDBCDaemon:
             message = str(count) + " active alerts:\n"
             for stationID, reading in readings.iteritems():
                 message += "    " + self.shortDescription(stationID, reading) + "\n"
-            message += "Get on it kook!"
+            message += "Get on it, kook!"
             
             for device in db.devices.find({'user_id': userID}):
+                notifier.send(device['token'], message, count, isSilent)
                 try:
                     notifier.send(device['token'], message, count, isSilent)
                 except:
@@ -150,6 +151,8 @@ class NDBCDaemon:
         return readingAngle == requiredClockwiseStart and readingAngle == requiredClockwiseEnd
     
     def shortDescription(self, stationID, reading):
+        print("CONSTRUCTING SHORT DESCRIPTION")
+        print(reading)
         if 'wave_height' not in reading or 'wave_period' not in reading:
             return stationID + ": good rn"
         waveHeight = reading['wave_height']
