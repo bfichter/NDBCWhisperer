@@ -82,6 +82,7 @@ class NDBCDaemon:
                 return False
             
         if 'wave_period_min' in alert:
+            # I think this is dominant period or something?
             if 'wave_period' not in reading:
                 return False
             
@@ -106,21 +107,21 @@ class NDBCDaemon:
             if 'wind_direction' not in reading:
                 return False
             
-            if not self.isRangeFulfilled(alert['wind_direction_range'], reading['wind_direction']):
+            if not self.isRangeFulfilled(alert['wind_direction_range'], reading['wind_direction']['angle']):
                 return False
         
         if 'wave_direction_range' in alert:
             if 'wave_direction' not in reading:
                 return False
             
-            if not self.isRangeFulfilled(alert['wave_direction_range'], reading['wave_direction']):
+            if not self.isRangeFulfilled(alert['wave_direction_range'], reading['wave_direction']['angle']):
                 return False
             
         if 'swell_direction_range' in alert:
             if 'swell_direction' not in reading:
                 return False
             
-            if not self.isRangeFulfilled(alert['swell_direction_range'], reading['swell_direction']):
+            if not self.isRangeFulfilledByCompassString(alert['swell_direction_range'], reading['swell_direction']):
                 return False
             
         # Got through the gauntlet, this alert is valid
@@ -128,10 +129,9 @@ class NDBCDaemon:
     
     # Parameters are rangeType and directionType defined in settings.py
     # Logic/naming mirrors client logic/naming
-    def isRangeFulfilled(self, directionRange, direction):
+    def isRangeFulfilled(self, directionRange, readingAngle):
         requiredClockwiseStart = directionRange['clockwise_start']
         requiredClockwiseEnd = directionRange['clockwise_end']
-        readingAngle = direction['angle']
         
         if requiredClockwiseStart is None or requiredClockwiseEnd is None or readingAngle is None:
             return False
@@ -150,9 +150,14 @@ class NDBCDaemon:
         
         return readingAngle == requiredClockwiseStart and readingAngle == requiredClockwiseEnd
     
+    def isRangeFulfilledByCompassString(self, directionRange, compassString):
+        # TODO actually add this back, and make all readings have direction
+        return False
+    
     def shortDescription(self, stationID, reading):
         print("CONSTRUCTING SHORT DESCRIPTION")
         print(reading)
+        # I think it's dominant Period or something?
         if 'wave_height' not in reading or 'wave_period' not in reading:
             return stationID + ": good rn"
         waveHeight = reading['wave_height']
