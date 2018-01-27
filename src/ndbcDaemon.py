@@ -59,7 +59,6 @@ class NDBCDaemon:
             message += "Get on it, kook!"
             
             for device in db.devices.find({'user_id': userID}):
-                notifier.send(device['token'], message, count, isSilent)
                 try:
                     notifier.send(device['token'], message, count, isSilent)
                 except:
@@ -156,6 +155,6 @@ class NDBCDaemon:
     def shortDescription(self, stationID, reading):
         if 'wave_height' not in reading or 'dominant_period' not in reading:
             return stationID + ": good rn"
-        waveHeight = reading['wave_height']
-        wavePeriod = reading['dominant_period']
+        waveHeight = str(reading['wave_height'])
+        wavePeriod = str(reading['dominant_period'])
         return stationID + ": " + waveHeight + "ft @" + wavePeriod + "sec"
