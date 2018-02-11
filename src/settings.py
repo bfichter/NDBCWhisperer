@@ -28,9 +28,6 @@ users = {
             'type': 'string',
             'required': True,
             'unique': True
-        },
-        'token': {
-            'type': 'list'
         }       
     }
 }
