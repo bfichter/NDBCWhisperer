@@ -15,6 +15,14 @@ IF_MATCH = False
 RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
 ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
 
+notificationInfoType = {
+    'type': 'dict',
+    'schema': {
+        'frequency': {'type': 'string'}, # So far just 'hourly' and 'daily'
+        'last_notified': {'type': 'string'} # This is only set and read on server
+    }
+}
+
 users = {
     #'item_title': 'user',
     
@@ -28,7 +36,8 @@ users = {
             'type': 'string',
             'required': True,
             'unique': True
-        }       
+        },
+        'notification': notificationInfoType
     }
 }
 
