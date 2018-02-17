@@ -52,6 +52,7 @@ class NDBCDaemon:
             
             count = len(alerts)
             # TODO have preferences which affect isSilent logic
+            # gonna have to create/modify a field in user here called like 'last_notified' or something
             isSilent = count == 0
             alertString = "alert" if count == 1 else "alerts"
             message = str(count) + " active " + alertString + ":\n"

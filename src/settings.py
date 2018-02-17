@@ -15,14 +15,6 @@ IF_MATCH = False
 RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
 ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
 
-notificationInfoType = {
-    'type': 'dict',
-    'schema': {
-        'frequency': {'type': 'string'}, # So far just 'hourly' and 'daily'
-        'last_notified': {'type': 'string'} # This is only set and read on server
-    }
-}
-
 users = {
     'additional_lookup': {
         'url': 'regex("\w+(?:-\w+)+")',
@@ -34,8 +26,7 @@ users = {
             'type': 'string',
             'required': True,
             'unique': True
-        },
-        'notification': notificationInfoType
+        }
     }
 }
 
@@ -57,6 +48,20 @@ devices = {
     }
 }
 
+notifications = {
+    'additional_lookup': {
+        'url': 'regex("\w+(?:-\w+)+")',
+        'field': 'user_id'
+    },
+    'schema': {
+        'user_id': {
+            'type': 'string',
+            'required': True
+        },
+        'frequency': {'type': 'string'}
+    }
+}
+
 rangeType = {
     'type': 'dict',
     'schema': {
@@ -69,11 +74,11 @@ alerts = {
     'schema': {
         'user_id': {
              'type': 'string',
-             'required': True,
+             'required': True
         },
         'station_id': {
             'type': 'string',
-            'required': True,
+            'required': True
         },
         'wind_direction_range': rangeType,
         'wave_direction_range': rangeType,
@@ -151,6 +156,7 @@ buoys = {
 DOMAIN = {
     'users': users,
     'devices': devices,
+    'notifications': notifications,
     'alerts': alerts,
     'readings': readings,
     'buoys': buoys
