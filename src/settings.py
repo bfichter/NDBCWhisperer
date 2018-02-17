@@ -24,10 +24,8 @@ notificationInfoType = {
 }
 
 users = {
-    #'item_title': 'user',
-    
     'additional_lookup': {
-        'url': 'regex("[\w]+")',
+        'url': 'regex("\w+(?:-\w+)+")',
         'field': 'user_id'
     },
     
