@@ -1,12 +1,10 @@
 from scraper import Scraper
 from ndbcMongoClient import NDBCMongoClient
 from notifier import Notifier
+import datetime
 
 class NDBCDaemon:
     def run(self):
-        #push test
-        #notifier = Notifier()
-        #notifier.send('5886e435dadfbd10f15df6e8f2c73b7eecb7de9eaa9e5becb31f83894ed707a1', 'Test Message', 1, False)
         client = NDBCMongoClient().client
         db = client.ndbc
         self.refreshReadings(db)
@@ -14,8 +12,6 @@ class NDBCDaemon:
         client.close()
     
     def refreshReadings(self, db):
-        # Get all readings from Mongo
-        # and run scrape() on each
         for buoy in db.buoys.find():
             Scraper(buoy['station_id'], db).scrape()
             print(buoy['station_id'])
@@ -51,9 +47,11 @@ class NDBCDaemon:
                     print('END NOT FULFILLED')
             
             count = len(alerts)
-            # TODO have preferences which affect isSilent logic
-            # gonna have to create/modify a field in user here called like 'last_notified' or something
-            isSilent = count == 0
+            isSilent = self.isSilent(count, user, userID, db)
+            
+            if not isSilent:
+                db.users.update_one({'_id': user['_id']}, {'$set': {'last_notified':datetime.datetime.now()}})
+            
             alertString = "alert" if count == 1 else "alerts"
             message = str(count) + " active " + alertString + ":\n"
             for stationID, reading in readings.iteritems():
@@ -65,7 +63,28 @@ class NDBCDaemon:
                     notifier.send(device['token'], message, count, isSilent)
                 except:
                     print("APNS error, couldn't send to " + device['token']) 
-            
+    
+    def isSilent(self, count, user, userID, db):
+        if count == 0:
+            return True
+        
+        cursor = db.notifications.find({'user_id': userID})
+        
+        if cursor.count() == 0:
+            return False
+        
+        notificationSettings = cursor.next()
+        
+        if notificationSettings['frequency'] == 'hourly':
+            return False
+        
+        if 'last_notified' not in user:
+            return False
+        
+        lastNotified = user['last_notified']
+        
+        return lastNotified.date() == datetime.datetime.today().date()
+    
     # we should actually get some tests on this, gonna be fucked otherwise        
     def isFulfilled(self, alert, reading):
         if 'wind_speed_max' in alert:

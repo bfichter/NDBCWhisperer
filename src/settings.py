@@ -56,7 +56,8 @@ notifications = {
     'schema': {
         'user_id': {
             'type': 'string',
-            'required': True
+            'required': True,
+            'unique': True
         },
         'frequency': {'type': 'string'}
     }
