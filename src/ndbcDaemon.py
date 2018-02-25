@@ -2,6 +2,7 @@ from scraper import Scraper
 from ndbcMongoClient import NDBCMongoClient
 from notifier import Notifier
 import datetime
+import pytz
 
 class NDBCDaemon:
     def run(self):
@@ -50,7 +51,7 @@ class NDBCDaemon:
             isSilent = self.isSilent(count, user, userID, db)
             
             if not isSilent:
-                db.users.update_one({'_id': user['_id']}, {'$set': {'last_notified':datetime.datetime.now()}})
+                db.users.update_one({'_id': user['_id']}, {'$set': {'last_notified':datetime.datetime.utcnow()}})
             
             alertString = "alert" if count == 1 else "alerts"
             message = str(count) + " active " + alertString + ":\n"
@@ -83,7 +84,16 @@ class NDBCDaemon:
         
         lastNotified = user['last_notified']
         
-        return lastNotified.date() == datetime.datetime.today().date()
+        return self.convertedDatetime(lastNotified).date() == self.convertedDatetime(datetime.datetime.utcnow()).date()
+    
+    def convertedDatetime(self, naiveDatetime):
+        utcTimezone = pytz.utc
+        localizedDatetime = utcTimezone.localize(naiveDatetime)
+        # TODO sync timezone from client device and use that for conversion here
+        easternDatetime = localizedDatetime.astimezone(pytz.timezone('US/Eastern'))
+        # Targeting first notification at 6am for east coast, 3am for west coast, 1am for hawaii
+        # With dynamic timezones, this would just be 6am for everyone
+        return easternDatetime - datetime.timedelta(hours=6)
     
     # we should actually get some tests on this, gonna be fucked otherwise        
     def isFulfilled(self, alert, reading):
