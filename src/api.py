@@ -52,8 +52,8 @@ app.on_pre_GET_readings += pre_readings_get_callback
 # These following two callbacks are to synchronize the badge count on the app
 # These obviously come with a substantial performance hit per request (especially update which is currently delete/create)
 # If it's not worth it, can remove these or try to make them async somehow
-app.on_inserted_alerts += on_inserted_alerts_callback
-app.on_deleted_item_alerts += on_deleted_alerts
+# app.on_inserted_alerts += on_inserted_alerts_callback
+# app.on_deleted_item_alerts += on_deleted_alerts
 
 if __name__ == '__main__':
     app.run(port=5002, debug=True) # was conflicting with something on 5000
