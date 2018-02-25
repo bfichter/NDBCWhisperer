@@ -20,51 +20,54 @@ class NDBCDaemon:
     def notifyUsers(self, db):
         notifier = Notifier()
         for user in db.users.find():
-            userID = user['user_id']
-            print(userID)
-            alerts = []
-            readings = {}
-            for alert in db.alerts.find({'user_id': userID}):
-                # Could optimize by maintaining a dict of Readings
-                # Not sure how slow Mongo lookups will be
-                stationID = alert['station_id']
-                reading = db.readings.find_one({'station_id': stationID})
-                
-                if reading is not None and self.isFulfilled(alert, reading):
-                    print('----FULFILLED-----')
-                    print('Alert Is:')
-                    print(alert)
-                    print('Reading Is:')
-                    print(reading)
-                    print('_End_Fulfilled_')
-                    alerts.append(alert)
-                    readings[stationID] = reading
-                else:
-                    print('NOT FULFILLED')
-                    print('Alert Is:')
-                    print(alert)
-                    print('Reading Is:')
-                    print(reading)
-                    print('END NOT FULFILLED')
-            
-            count = len(alerts)
-            isSilent = self.isSilent(count, user, userID, db)
-            
-            if not isSilent:
-                db.users.update_one({'_id': user['_id']}, {'$set': {'last_notified':datetime.datetime.utcnow()}})
-            
-            alertString = "alert" if count == 1 else "alerts"
-            message = str(count) + " active " + alertString + ":\n"
-            for stationID, reading in readings.iteritems():
-                message += "    " + self.shortDescription(stationID, reading) + "\n"
-            message += "Get on it, kook!"
-            
-            for device in db.devices.find({'user_id': userID}):
-                try:
-                    notifier.send(device['token'], message, count, isSilent)
-                except:
-                    print("APNS error, couldn't send to " + device['token']) 
+            self.notifyUser(db, user, notifier)
     
+    def notifyUser(self, db, user, notifier):
+        userID = user['user_id']
+        print(userID)
+        alerts = []
+        readings = {}
+        for alert in db.alerts.find({'user_id': userID}):
+            # Could optimize by maintaining a dict of Readings
+            # Not sure how slow Mongo lookups will be
+            stationID = alert['station_id']
+            reading = db.readings.find_one({'station_id': stationID})
+                            
+            if reading is not None and self.isFulfilled(alert, reading):
+                print('----FULFILLED-----')
+                print('Alert Is:')
+                print(alert)
+                print('Reading Is:')
+                print(reading)
+                print('_End_Fulfilled_')
+                alerts.append(alert)
+                readings[stationID] = reading
+            else:
+                print('NOT FULFILLED')
+                print('Alert Is:')
+                print(alert)
+                print('Reading Is:')
+                print(reading)
+                print('END NOT FULFILLED')
+                            
+        count = len(alerts)
+        isSilent = self.isSilent(count, user, userID, db)
+                    
+        if not isSilent:
+            db.users.update_one({'_id': user['_id']}, {'$set': {'last_notified':datetime.datetime.utcnow()}})
+            
+        alertString = "alert" if count == 1 else "alerts"
+        message = str(count) + " active " + alertString + ":\n"
+        for stationID, reading in readings.iteritems():
+            message += "    " + self.shortDescription(stationID, reading) + "\n"
+        message += "Get on it, kook!"
+                    
+        for device in db.devices.find({'user_id': userID}):
+            try:
+                notifier.send(device['token'], message, count, isSilent)
+            except:
+                print("APNS error, couldn't send to " + device['token'])
+                
     def isSilent(self, count, user, userID, db):
         if count == 0:
             return True
