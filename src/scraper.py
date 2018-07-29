@@ -13,7 +13,7 @@ class Scraper:
         self.db = db
     
     def scrape(self):
-        page = requests.get('http://www.ndbc.noaa.gov/station_page.php?station=' + self.stationID)
+        page = requests.get('https://www.ndbc.noaa.gov/station_page.php?station=' + self.stationID)
         
         self.tree = html.fromstring(page.content)
         
