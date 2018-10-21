@@ -10,12 +10,31 @@ class BuoyUpdater:
         # TODO have some exists/buoy name gathering function here
         print('updating for ' + stationID)
         wavesReading = self.ndbcDictionaryForRequest('waves', stationID)
+        print(wavesReading)
         windsReading = self.ndbcDictionaryForRequest('winds', stationID)
         print(windsReading)
-        waveHeightMeters = float(wavesReading['"sea_surface_wave_significant_height (m)"']) # this float call might crash if param doesn't exist?
-        waveHeightFeet = self.feetFromMeters(waveHeightMeters)
-        print(waveHeightFeet)
+        waveHeight = self.feetFromReading(wavesReading, '"sea_surface_wave_significant_height (m)"')
+        wavePeriod = self.floatFromReading(wavesReading, '"sea_surface_wave_peak_period (s)"')
+        waveDirection = self.fromDirectionFromReading(wavesReading, '"sea_surface_wave_to_direction (degree)"')
         
+        swellHeight = self.feetFromReading(wavesReading, '"sea_surface_swell_wave_significant_height (m)"')
+        swellPeriod = self.floatFromReading(wavesReading, '"sea_surface_swell_wave_period (s)"')
+        swellDirection = self.fromDirectionFromReading(wavesReading, '"sea_surface_swell_wave_to_direction (degree)"')
+        
+        wavesDatetime = wavesReading['date_time']
+        
+        windSpeed = self.knotsFromReading(windsReading, '"wind_speed (m/s)"')
+        windDirection = self.floatFromReading(windsReading, '"wind_from_direction (degree)"') 
+        
+        print(waveHeight)
+        print(wavePeriod)
+        print(waveDirection)
+        print(swellHeight)
+        print(swellPeriod)
+        print(swellDirection)
+        print(wavesDatetime)
+        print(windDirection)
+        print(windSpeed)
     
     def ndbcDictionaryForRequest(self, requestType, stationID):
         payload = {
@@ -39,41 +58,52 @@ class BuoyUpdater:
         
         reading = {}
         for key, value in zip(keys, values):
+            print(key)
             reading[key] = value
             
         return reading
     
-    def feetFromMeters(self, meters):
+    def floatFromReading(self, reading, key):
+        try:
+            return round(float(reading[key]), 1)
+        except ValueError:
+            return None
+    
+    def feetFromReading(self, reading, key):
         # In order to map to the ft readings on ndbc,
         # we need to round before converting, then round again.
         # Obviously this loses information, but I've decided that
         # being consistent with ndbc is more important than retaining
         # reading precision.
-        roundedMeters = round(meters, 1)
+        try:
+            roundedMeters = round(float(reading[key]), 1)
+        except ValueError:
+            return None
+        
         feet = roundedMeters * 3.28084
         return round(feet, 1)
+    
+    def knotsFromReading(self, reading, key):
+        try:
+            roundedMetersPerSecond = round(float(reading[key]), 1)
+        except ValueError:
+            return None
         
+        knots = roundedMetersPerSecond * 1.94384
+        return round(knots, 1)
+    
+    def fromDirectionFromReading(self, reading, key):
+        # For some reason wave direction is being reported as 'to direction'. So we need
+        # to flip 180 degrees to make it the 'from direction'
+        try:
+            toDirection = round(float(reading[key]), 1)
+        except ValueError:
+            return None
+        
+        fromDirection = (toDirection + 180) % 360
+        return fromDirection
 
 
 updater = BuoyUpdater("dummy db, python is weird")
 updater.update('44013')
-# print(reading)
-# print('------')
-# 
-# stringReading = reading['"sea_surface_wave_significant_height (m)"']
-# floatReading = float(stringReading)
-# significantWaveHeight = round(floatReading, 1)
-# significantWaveHeight *= 3.28084
-# significantWaveHeight = round(significantWaveHeight, 1)
-# 
-# #significantWaveHeight = reading['"sea_surface_wave_significant_height (m)"']
-# print(significantWaveHeight)
-
-# "check out wind"
-# "check out invalid stations" need to have
-# "split on comma"
-# "split resulting array in half (make sure even number of elements)"
-# "make a dictionary of results"
-# "look for the relevant keys"
-# transform to american units 
-# "make sure this works for different stations"
+#updater.update('44008')
