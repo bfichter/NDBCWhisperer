@@ -3,6 +3,7 @@ from buoyUpdater import BuoyUpdater
 from ndbcMongoClient import NDBCMongoClient
 from ndbcDaemon import NDBCDaemon
 from notifier import Notifier
+from potentialBuoysUpdater import PotentialBuoysUpdater
 
 def updateBuoyIfNecessary(stationID):
     client = NDBCMongoClient().client
@@ -49,6 +50,11 @@ def on_deleted_alerts(item):
 app = Eve()
 app.on_pre_GET_buoys += pre_buoys_get_callback
 app.on_pre_GET_readings += pre_readings_get_callback
+
+client = NDBCMongoClient().client
+db = client.ndbc
+# Refresh the potential buoys db
+PotentialBuoysUpdater(db).update()
 # These following two callbacks are to synchronize the badge count on the app
 # These obviously come with a substantial performance hit per request (especially update which is currently delete/create)
 # If it's not worth it, can remove these or try to make them async somehow
