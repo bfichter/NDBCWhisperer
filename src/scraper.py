@@ -20,7 +20,7 @@ class Scraper:
         if not self.isValidStation():
             return
         
-        
+
         # setup the dictionaries
         buoy = {}
         reading = {}

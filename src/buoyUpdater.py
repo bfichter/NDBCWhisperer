@@ -2,12 +2,19 @@ from buoy import Buoy
 from reading import Reading
 import requests
 
+# Grabs new report for whatever station specified
+# Updates the Reading in Mongo
+# Typically this will be used on the hourly update
+# And whenever someone requests a new buoy
 class BuoyUpdater:
     def __init__(self, db):
         self.db = db
 
     def update(self, stationID):
-        # TODO have some exists/buoy name gathering function here
+        # TODO check potentialBuoys for this stationID
+        # if it exists create a buoy off of it to upsert
+        # if it doesn't then return becuase it's not a valid station 
+        
         print('updating for ' + stationID)
         wavesReading = self.ndbcDictionaryForRequest('waves', stationID)
         print(wavesReading)
