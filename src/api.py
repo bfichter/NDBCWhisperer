@@ -1,10 +1,10 @@
 from eve import Eve
-from scraper import Scraper
+from buoyUpdater import BuoyUpdater
 from ndbcMongoClient import NDBCMongoClient
 from ndbcDaemon import NDBCDaemon
 from notifier import Notifier
 
-def scrapeIfNecessary(stationID):
+def updateBuoyIfNecessary(stationID):
     client = NDBCMongoClient().client
     db = client.ndbc
     # clean all this up
@@ -14,8 +14,8 @@ def scrapeIfNecessary(stationID):
         client.close()
         return
     
-    scraper = Scraper(stationID, db)
-    scraper.scrape()
+    buoyUpdater = BuoyUpdater(db)
+    buoyUpdater.update(stationID)
     client.close()
 
 def notifyUser(userID):
@@ -29,11 +29,11 @@ def notifyUser(userID):
 # We want to use it for some reason
 def pre_buoys_get_callback(request, lookup):
     stationID = lookup["station_id"]
-    scrapeIfNecessary(stationID)
+    updateBuoyIfNecessary(stationID)
     
 def pre_readings_get_callback(request, lookup):
     stationID = lookup["station_id"]
-    scrapeIfNecessary(stationID)
+    updateBuoyIfNecessary(stationID)
 
 def on_inserted_alerts_callback(items):
     print(items)
