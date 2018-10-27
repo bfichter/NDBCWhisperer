@@ -11,15 +11,20 @@ class BuoyUpdater:
         self.db = db
 
     def update(self, stationID):
-        # TODO check potentialBuoys for this stationID
-        # if it exists create a buoy off of it to upsert
-        # if it doesn't then return becuase it's not a valid station 
+        potentialBuoy = self.db.potentialBuoys.find_one({'station_id': stationID})
+        
+        if potentialBuoy is None:
+            # This is not a valid stationID
+            return
+        buoyName = potentialBuoy['name']
+        buoy = {
+            'station_id': potentialBuoy['station_id'],
+            'name': buoyName
+        }
         
         print('updating for ' + stationID)
         wavesReading = self.ndbcDictionaryForRequest('waves', stationID)
-        print(wavesReading)
         windsReading = self.ndbcDictionaryForRequest('winds', stationID)
-        print(windsReading)
         waveHeight = self.feetFromReading(wavesReading, '"sea_surface_wave_significant_height (m)"')
         wavePeriod = self.floatFromReading(wavesReading, '"sea_surface_wave_peak_period (s)"')
         waveDirection = self.fromDirectionFromReading(wavesReading, '"sea_surface_wave_to_direction (degree)"')
@@ -42,6 +47,31 @@ class BuoyUpdater:
         print(wavesDatetime)
         print(windDirection)
         print(windSpeed)
+        
+        reading = {
+            'station_id': stationID,
+            'buoy_name': buoyName,
+            'wind_direction': windDirection,
+            'wind_speed': windSpeed,
+            'wave_height': waveHeight,
+            'dominant_period': wavePeriod,
+            'wave_direction': waveDirection,
+            'swell_height': swellHeight,
+            'swell_period': swellPeriod,
+            'swell_direction': swellDirection,
+            'datetime': wavesDatetime
+        }
+        
+        # Remove nulls
+        reading = {k: v for k, v in reading.items() if v != None}
+        
+        # Instantiate model objects
+        buoyObject = Buoy(**buoy)
+        readingObject = Reading(**reading)
+        
+        #readingObject.id = self.db.readings.insert_one(readingObject.mongoDB()).inserted_id
+        self.db.readings.update({'station_id': self.stationID}, readingObject.mongoDB(), upsert = True)
+        self.db.buoys.update({'station_id': self.stationID}, buoyObject.mongoDB(), upsert = True)
     
     def ndbcDictionaryForRequest(self, requestType, stationID):
         payload = {
@@ -109,8 +139,3 @@ class BuoyUpdater:
         
         fromDirection = (toDirection + 180) % 360
         return fromDirection
-
-
-updater = BuoyUpdater("dummy db, python is weird")
-updater.update('44013')
-#updater.update('44008')

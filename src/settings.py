@@ -117,23 +117,13 @@ readings = {
         },
         'wind_direction': directionType,
         'wind_speed': {'type': 'number'},
-        'wind_gust': {'type': 'number'},
-        'wind_height': {'type': 'number'},
         'wave_height': {'type': 'number'},
         'dominant_period': {'type': 'number'},
-        'average_period': {'type': 'number'},
         'wave_direction': directionType,
-        'air_temperature': {'type': 'number'},
-        'significant_wave_height': {'type': 'number'},
         'swell_height': {'type': 'number'},
         'swell_period': {'type': 'number'},
         'swell_direction': directionType,
-        'wind_wave_height': {'type': 'number'},
-        'wind_wave_period': {'type': 'number'},
-        'wind_wave_direction': directionType,
-        'average_wave_period': {'type': 'number'},
-        'first_time': {'type': 'string'},
-        'second_time': {'type': 'string'}
+        'datetime': {'type': 'string'}
     }
 }
 

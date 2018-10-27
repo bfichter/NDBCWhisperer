@@ -1,6 +1,6 @@
 class PotentialBuoy: 
     # station_id: String *
-    # buoy_name: String
+    # name: String
     def __init__(self, **entries):
         self.__dict__.update(entries)
         
