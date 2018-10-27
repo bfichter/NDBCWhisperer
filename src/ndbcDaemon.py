@@ -1,4 +1,4 @@
-from scraper import Scraper
+from buoyUpdater import BuoyUpdater
 from ndbcMongoClient import NDBCMongoClient
 from notifier import Notifier
 import datetime
@@ -8,13 +8,14 @@ class NDBCDaemon:
     def run(self):
         client = NDBCMongoClient().client
         db = client.ndbc
-        self.refreshReadings(db)
+        buoyUpdater = BuoyUpdater(db)
+        self.refreshReadings(db, buoyUpdater)
         self.notifyUsers(db)
         client.close()
     
-    def refreshReadings(self, db):
+    def refreshReadings(self, db, buoyUpdater):
         for buoy in db.buoys.find():
-            Scraper(buoy['station_id'], db).scrape()
+            buoyUpdater.update(buoy['station_id'])
             print(buoy['station_id'])
         
     def notifyUsers(self, db):
