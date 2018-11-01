@@ -19,5 +19,5 @@ class PotentialBuoysUpdater:
             }
             print potentialBuoy
             potentialBuoyObject = PotentialBuoy(**potentialBuoy)
-            self.db.potentialBuoys.update({'station_id': self.stationID}, potentialBuoyObject.mongoDB(), upsert = True)
+            self.db.potentialBuoys.update({'station_id': stationID}, potentialBuoyObject.mongoDB(), upsert = True)
             
