@@ -70,8 +70,8 @@ class BuoyUpdater:
         readingObject = Reading(**reading)
         
         #readingObject.id = self.db.readings.insert_one(readingObject.mongoDB()).inserted_id
-        self.db.readings.update({'station_id': self.stationID}, readingObject.mongoDB(), upsert = True)
-        self.db.buoys.update({'station_id': self.stationID}, buoyObject.mongoDB(), upsert = True)
+        self.db.readings.update({'station_id': stationID}, readingObject.mongoDB(), upsert = True)
+        self.db.buoys.update({'station_id': stationID}, buoyObject.mongoDB(), upsert = True)
     
     def ndbcDictionaryForRequest(self, requestType, stationID):
         payload = {
@@ -103,7 +103,7 @@ class BuoyUpdater:
     def floatFromReading(self, reading, key):
         try:
             return round(float(reading[key]), 1)
-        except ValueError:
+        except (ValueError, KeyError):
             return None
     
     def feetFromReading(self, reading, key):
@@ -114,7 +114,7 @@ class BuoyUpdater:
         # reading precision.
         try:
             roundedMeters = round(float(reading[key]), 1)
-        except ValueError:
+        except (ValueError, KeyError):
             return None
         
         feet = roundedMeters * 3.28084
@@ -123,7 +123,7 @@ class BuoyUpdater:
     def knotsFromReading(self, reading, key):
         try:
             roundedMetersPerSecond = round(float(reading[key]), 1)
-        except ValueError:
+        except (ValueError, KeyError):
             return None
         
         knots = roundedMetersPerSecond * 1.94384
@@ -134,7 +134,7 @@ class BuoyUpdater:
         # to flip 180 degrees to make it the 'from direction'
         try:
             toDirection = round(float(reading[key]), 1)
-        except ValueError:
+        except (ValueError, KeyError):
             return None
         
         fromDirection = (toDirection + 180) % 360
