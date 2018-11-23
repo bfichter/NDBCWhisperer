@@ -8,6 +8,8 @@ from potentialBuoysUpdater import PotentialBuoysUpdater
 def updateBuoyIfNecessary(stationID):
     client = NDBCMongoClient().client
     db = client.ndbc
+    #Testing
+    PotentialBuoysUpdater(db).update()
     # clean all this up
     # possibly hold onto a db connection outside of eve
     if db.buoys.find( { "station_id" : stationID } ).count() > 0:
@@ -51,10 +53,10 @@ app = Eve()
 app.on_pre_GET_buoys += pre_buoys_get_callback
 app.on_pre_GET_readings += pre_readings_get_callback
 
-client = NDBCMongoClient().client
-db = client.ndbc
-# Refresh the potential buoys db
-PotentialBuoysUpdater(db).update()
+# client = NDBCMongoClient().client
+# db = client.ndbc
+# # Refresh the potential buoys db
+# PotentialBuoysUpdater(db).update()
 # These following two callbacks are to synchronize the badge count on the app
 # These obviously come with a substantial performance hit per request (especially update which is currently delete/create)
 # If it's not worth it, can remove these or try to make them async somehow
