@@ -4,6 +4,7 @@ from ndbcMongoClient import NDBCMongoClient
 from ndbcDaemon import NDBCDaemon
 from notifier import Notifier
 from potentialBuoysUpdater import PotentialBuoysUpdater
+import time
 
 def updateBuoyIfNecessary(stationID):
     client = NDBCMongoClient().client
@@ -51,6 +52,16 @@ app = Eve()
 app.on_pre_GET_buoys += pre_buoys_get_callback
 app.on_pre_GET_readings += pre_readings_get_callback
 
+# Add a timeout to avoid the race between various monitoring threads and the writing to
+# mongo which occurs below. PyMongo should hopefully fix this at some point, but for now
+# just sleep 5 seconds
+time.sleep(5)
+
+client = NDBCMongoClient().client
+db = client.ndbc
+#Refresh the potential buoys db
+PotentialBuoysUpdater(db).update()
+
 # client = NDBCMongoClient().client
 # db = client.ndbc
 # # Refresh the potential buoys db
@@ -63,8 +74,4 @@ app.on_pre_GET_readings += pre_readings_get_callback
 
 if __name__ == '__main__':
     app.run(port=5002, debug=True) # was conflicting with something on 5000
-    client = NDBCMongoClient().client
-    db = client.ndbc
-    #Refresh the potential buoys db
-    PotentialBuoysUpdater(db).update()
     
