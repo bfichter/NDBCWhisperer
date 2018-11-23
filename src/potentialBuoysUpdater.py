@@ -25,6 +25,6 @@ class PotentialBuoysUpdater:
 if __name__ == "__main__":
     client = NDBCMongoClient().client
     db = client.ndbc
-    PotentialBuoysUpdater().update()
+    PotentialBuoysUpdater(db).update()
     
             
