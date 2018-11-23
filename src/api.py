@@ -8,8 +8,6 @@ from potentialBuoysUpdater import PotentialBuoysUpdater
 def updateBuoyIfNecessary(stationID):
     client = NDBCMongoClient().client
     db = client.ndbc
-    #Testing
-    PotentialBuoysUpdater(db).update()
     # clean all this up
     # possibly hold onto a db connection outside of eve
     if db.buoys.find( { "station_id" : stationID } ).count() > 0:
@@ -65,4 +63,8 @@ app.on_pre_GET_readings += pre_readings_get_callback
 
 if __name__ == '__main__':
     app.run(port=5002, debug=True) # was conflicting with something on 5000
+    client = NDBCMongoClient().client
+    db = client.ndbc
+    #Refresh the potential buoys db
+    PotentialBuoysUpdater(db).update()
     
