@@ -92,14 +92,6 @@ alerts = {
     }
 }
 
-directionType = {
-    'type': 'dict',
-    'schema': {
-        'compass': {'type': 'string'},
-        'angle': {'type': 'number'}
-    }
-}
-
 readings = {
     'additional_lookup': {
         'url': 'regex("[\w]+")',
@@ -115,14 +107,14 @@ readings = {
             'type': 'string',
             'required': True
         },
-        'wind_direction': directionType,
+        'wind_direction': {'type': 'number'},
         'wind_speed': {'type': 'number'},
         'wave_height': {'type': 'number'},
         'dominant_period': {'type': 'number'},
-        'wave_direction': directionType,
+        'wave_direction': {'type': 'number'},
         'swell_height': {'type': 'number'},
         'swell_period': {'type': 'number'},
-        'swell_direction': directionType,
+        'swell_direction': {'type': 'number'},
         'datetime': {'type': 'string'}
     }
 }
