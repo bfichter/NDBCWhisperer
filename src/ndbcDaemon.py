@@ -140,21 +140,21 @@ class NDBCDaemon:
             if 'wind_direction' not in reading:
                 return False
             
-            if not self.isRangeFulfilled(alert['wind_direction_range'], reading['wind_direction']['angle']):
+            if not self.isRangeFulfilled(alert['wind_direction_range'], reading['wind_direction']):
                 return False
         
         if 'wave_direction_range' in alert:
             if 'wave_direction' not in reading:
                 return False
             
-            if not self.isRangeFulfilled(alert['wave_direction_range'], reading['wave_direction']['angle']):
+            if not self.isRangeFulfilled(alert['wave_direction_range'], reading['wave_direction']):
                 return False
             
         if 'swell_direction_range' in alert:
             if 'swell_direction' not in reading:
                 return False
             
-            if not self.isRangeFulfilled(alert['swell_direction_range'], reading['swell_direction']['angle']):
+            if not self.isRangeFulfilled(alert['swell_direction_range'], reading['swell_direction']):
                 return False
             
         # Got through the gauntlet, this alert is valid
