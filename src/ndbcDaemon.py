@@ -80,6 +80,10 @@ class NDBCDaemon:
         
         notificationSettings = cursor.next()
         
+        # TODO make this into an enum
+        if notificationSettings['frequency'] == 'badge_only':
+            return True
+        
         if notificationSettings['frequency'] == 'hourly':
             return False
         
