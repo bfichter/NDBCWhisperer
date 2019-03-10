@@ -12,7 +12,7 @@ MONGO_DBNAME = 'ndbc'
 #DEBUG = True
 IF_MATCH = False
 
-RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
+RESOURCE_METHODS = ['GET', 'POST']
 ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
 
 users = {
