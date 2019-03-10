@@ -6,18 +6,14 @@ from notifier import Notifier
 from potentialBuoysUpdater import PotentialBuoysUpdater
 
 def updateBuoyIfNecessary(stationID):
-    client = NDBCMongoClient().client
-    db = client.ndbc
-    # clean all this up
-    # possibly hold onto a db connection outside of eve
+    # use eve's native db connection
+    db = app.data.driver.db
     if db.buoys.find( { "station_id" : stationID } ).count() > 0:
         print("HIT THE CACHE")
-        client.close()
         return
     
     buoyUpdater = BuoyUpdater(db)
     buoyUpdater.update(stationID)
-    client.close()
 
 def notifyUser(userID):
     client = NDBCMongoClient().client
