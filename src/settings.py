@@ -16,11 +16,9 @@ RESOURCE_METHODS = ['GET', 'POST']
 ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
 
 users = {
-    'additional_lookup': {
-        'url': 'regex("\w+(?:-\w+)+")',
-        'field': 'user_id'
-    },
-    
+    # Only allow for registration, no querying of users
+    'resource_methods': ['POST'],
+    'item_methods': [],
     'schema': {
         'user_id': {
             'type': 'string',
@@ -31,6 +29,9 @@ users = {
 }
 
 devices = {
+    'resource_methods': ['POST'],
+    'item_methods': ['DELETE'],
+    # Allow lookup by token (not just the mongo _id)
     'additional_lookup': {
         'url': 'regex("[\w]+")',
         'field': 'token'
@@ -49,6 +50,9 @@ devices = {
 }
 
 notifications = {
+    'resource_methods': ['POST'],
+    'item_methods': ['GET', 'PUT'],
+    # Allow lookup by user_id (not just the mongo _id)
     'additional_lookup': {
         'url': 'regex("\w+(?:-\w+)+")',
         'field': 'user_id'
@@ -71,7 +75,10 @@ rangeType = {
     }
 }
 
+# We need auth here (maybe the user id specific auth, only touch alerts you have)
 alerts = {
+    'resource_methods': ['GET', 'POST'],
+    'item_methods': ['DELETE'], 
     'schema': {
         'user_id': {
              'type': 'string',
@@ -93,6 +100,8 @@ alerts = {
 }
 
 readings = {
+    'resource_methods': [],
+    'item_methods': ['GET'],
     'additional_lookup': {
         'url': 'regex("[\w]+")',
         'field': 'station_id'
@@ -119,8 +128,10 @@ readings = {
     }
 }
 
-# TODO, disable put post etc
 buoys = {
+    'resource_methods': [],
+    'item_methods': ['GET'],
+    # allow lookup by station_id
     'additional_lookup': {
         'url': 'regex("[\w]+")',
         'field': 'station_id'
