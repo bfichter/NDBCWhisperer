@@ -16,14 +16,20 @@ RESOURCE_METHODS = ['GET', 'POST']
 ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
 
 users = {
-    # Only allow for registration, no querying of users
+    # Allow user creation to happen w/o auth
+    'public_methods': ['POST'],
     'resource_methods': ['POST'],
+    # Only allow for registration, no querying of users
     'item_methods': [],
     'schema': {
         'user_id': {
             'type': 'string',
             'required': True,
             'unique': True
+        },
+        'password': {
+            'type': 'string',
+            'required': True
         }
     }
 }
@@ -50,6 +56,8 @@ devices = {
 }
 
 notifications = {
+    # Allow notifications to be created w/o auth (to make reg easier on client)
+    'public_methods': ['POST'],
     'resource_methods': ['POST'],
     'item_methods': ['GET', 'PUT'],
     # Allow lookup by user_id (not just the mongo _id)
