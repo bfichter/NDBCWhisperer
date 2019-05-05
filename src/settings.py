@@ -110,7 +110,7 @@ alerts = {
 }
 
 readings = {
-    'resource_methods': [],
+    'resource_methods': ['GET'],
     'item_methods': ['GET'],
     'additional_lookup': {
         'url': 'regex("[\w]+")',
