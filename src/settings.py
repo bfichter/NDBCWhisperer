@@ -85,7 +85,6 @@ rangeType = {
     }
 }
 
-# We need auth here (maybe the user id specific auth, only touch alerts you have)
 alerts = {
     'resource_methods': ['GET', 'POST'],
     'item_methods': ['DELETE', 'PUT'], 
