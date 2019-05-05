@@ -32,6 +32,10 @@ def pre_buoys_get_callback(request, lookup):
     updateBuoyIfNecessary(stationID)
     
 def pre_readings_get_callback(request, lookup):
+    # Don't do the lookup on batch requests
+    if 'station_id' not in lookup:
+        return
+    
     stationID = lookup['station_id']
     updateBuoyIfNecessary(stationID)
 
