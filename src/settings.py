@@ -1,4 +1,5 @@
 from config import config
+from eve.default_settings import AUTH_FIELD
 
 mongoConfig = config['mongo']
 MONGO_HOST = mongoConfig['host']
@@ -14,6 +15,7 @@ IF_MATCH = False
 
 RESOURCE_METHODS = ['GET', 'POST']
 ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
+AUTH_FIELD = 'user_id'
 
 users = {
     # Allow user creation to happen w/o auth
@@ -136,6 +138,7 @@ readings = {
     }
 }
 
+# Not currently consumed by client (uses readings fetch instead)
 buoys = {
     'resource_methods': [],
     'item_methods': ['GET'],

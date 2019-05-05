@@ -46,10 +46,15 @@ class EveAuth(BasicAuth):
             return True
         
         user = app.data.driver.db.users.find_one({'user_id': username})
+        
+        # Use user-restricted resource so users can only get resources they've created
+        # http://docs.python-eve.org/en/latest/authentication.html#user-restricted-resource-access
+        if resource != 'readings' and user and 'user_id' in user:
+            self.set_request_auth_value(user['user_id'])
+        
         return user and check_password_hash(user['password'], password)
 
 app = Eve(auth=EveAuth)
-#app = Eve()
 app.on_pre_GET_buoys += pre_buoys_get_callback
 app.on_pre_GET_readings += pre_readings_get_callback
 app.on_insert_users += insert_users_callback
