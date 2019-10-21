@@ -1,6 +1,8 @@
 from buoy import Buoy
+from compass import compassDict
 from reading import Reading
 import requests
+import urllib2
 
 # Grabs new report for whatever station specified
 # Updates the Reading in Mongo
@@ -12,7 +14,7 @@ class BuoyUpdater:
 
     def update(self, stationID):
         potentialBuoy = self.db.potentialBuoys.find_one({'station_id': stationID})
-        
+         
         if potentialBuoy is None:
             # This is not a valid stationID
             return
@@ -21,32 +23,88 @@ class BuoyUpdater:
             'station_id': potentialBuoy['station_id'],
             'name': buoyName
         }
+
+        # gets you the first box:
+        # https://www.ndbc.noaa.gov/data/realtime2/41013.txt
+        # then this for second box:
+        # https://www.ndbc.noaa.gov/data/realtime2/44013.spec
         
-        print('updating for ' + stationID)
-        wavesReading = self.ndbcDictionaryForRequest('waves', stationID)
-        windsReading = self.ndbcDictionaryForRequest('winds', stationID)
-        waveHeight = self.feetFromReading(wavesReading, '"sea_surface_wave_significant_height (m)"')
-        wavePeriod = self.floatFromReading(wavesReading, '"sea_surface_wave_peak_period (s)"')
-        waveDirection = self.fromDirectionFromReading(wavesReading, '"sea_surface_wave_to_direction (degree)"')
+        try:
+            firstBoxData = urllib2.urlopen("https://www.ndbc.noaa.gov/data/realtime2/" + stationID + ".txt").read(2000)
+            secondBoxData = urllib2.urlopen("https://www.ndbc.noaa.gov/data/realtime2/" + stationID + ".spec").read(2000)
+        except urllib2.HTTPError:
+            print('error caught trying to fetch ' + stationID)
+            # TODO make this still update the reading as empty or something
+            return
         
-        swellHeight = self.feetFromReading(wavesReading, '"sea_surface_swell_wave_significant_height (m)"')
-        swellPeriod = self.floatFromReading(wavesReading, '"sea_surface_swell_wave_period (s)"')
-        swellDirection = self.fromDirectionFromReading(wavesReading, '"sea_surface_swell_wave_to_direction (degree)"')
+        # For some stations (e.g. 44008) the first box data is taken every 10 min,
+        # but only 1 per hour (usually on the 50 min) has all the data.
         
-        wavesDatetime = wavesReading['date_time']
+        # First box columns and units:
+        # YY  MM DD hh mm WDIR WSPD GST  WVHT   DPD   APD MWD   PRES  ATMP  WTMP  DEWP  VIS PTDY  TIDE
+        # yr  mo dy hr mn degT m/s  m/s     m   sec   sec degT   hPa  degC  degC  degC  nmi  hPa    ft
         
-        windSpeed = self.knotsFromReading(windsReading, '"wind_speed (m/s)"')
-        windDirection = self.floatFromReading(windsReading, '"wind_from_direction (degree)"') 
         
-        print(waveHeight)
-        print(wavePeriod)
-        print(waveDirection)
-        print(swellHeight)
-        print(swellPeriod)
-        print(swellDirection)
-        print(wavesDatetime)
-        print(windDirection)
-        print(windSpeed)
+        # Second box columns and units:
+        # YY  MM DD hh mm WVHT  SwH  SwP  WWH  WWP SwD WWD  STEEPNESS  APD MWD
+        # yr  mo dy hr mn    m    m  sec    m  sec  -  degT     -      sec degT
+        
+        lines = firstBoxData.split('\n')
+        firstLine = lines[0]
+        firstLineValues = firstLine.split()
+        
+        minuteIndex = firstLineValues.index('mm')
+        
+        readingLines = lines[2:]
+        
+        # default to the latest if no 50 min readings are found
+        latestFullReadingValues = readingLines[0].split()
+        
+        for readingLine in readingLines:
+            readingValues = readingLine.split()
+            minutes = readingValues[minuteIndex]
+            if minutes == '50':
+                latestFullReadingValues = readingValues
+                break
+        
+        firstBoxDictionary = {}
+        
+        for index, label in enumerate(firstLineValues):
+            readingValue = latestFullReadingValues[index]
+            firstBoxDictionary[label] = readingValue
+            
+        lines = secondBoxData.split('\n')
+        firstLine = lines[0]
+        firstLineValues = firstLine.split()
+        
+        readingLine = lines[2]
+        
+        latestFullReadingValues = readingLine.split()
+                
+        secondBoxDictionary = {}
+        
+        for index, label in enumerate(firstLineValues):
+            readingValue = latestFullReadingValues[index]
+            secondBoxDictionary[label] = readingValue
+        
+        waveHeight = self.feetFromReading(firstBoxDictionary, 'WVHT')
+        wavePeriod = self.floatFromReading(firstBoxDictionary, 'DPD')
+        waveDirection = self.floatFromReading(firstBoxDictionary, 'MWD')
+        swellHeight = self.feetFromReading(secondBoxDictionary, 'SwH')
+        swellPeriod = self.floatFromReading(secondBoxDictionary, 'SwP')
+        swellDirection = self.compassToDegreesFromReading(secondBoxDictionary, 'SwD') # Are all of these Strings?
+        #2019-10-20T17:50:00Z
+        try:
+            wavesDatetime = (firstBoxDictionary['#YY'] + 
+            '-' + firstBoxDictionary['MM'] +
+            '-' + firstBoxDictionary['DD'] +
+            'T' + firstBoxDictionary['hh'] +
+            ':' + firstBoxDictionary['mm'] + ':00Z')
+        except KeyError:
+            wavesDatetime = None 
+        windDirection = self.floatFromReading(firstBoxDictionary, 'WDIR')
+        windSpeed = self.knotsFromReading(firstBoxDictionary, 'WSPD') 
+                
         
         reading = {
             'station_id': stationID,
@@ -61,14 +119,14 @@ class BuoyUpdater:
             'swell_direction': swellDirection,
             'datetime': wavesDatetime
         }
-        
+         
         # Remove nulls
         reading = {k: v for k, v in reading.items() if v != None}
-        
+         
         # Instantiate model objects
         buoyObject = Buoy(**buoy)
         readingObject = Reading(**reading)
-        
+         
         #readingObject.id = self.db.readings.insert_one(readingObject.mongoDB()).inserted_id
         self.db.readings.update({'station_id': stationID}, readingObject.mongoDB(), upsert = True)
         self.db.buoys.update({'station_id': stationID}, buoyObject.mongoDB(), upsert = True)
@@ -139,3 +197,11 @@ class BuoyUpdater:
         
         fromDirection = (toDirection + 180) % 360
         return fromDirection
+    
+    def compassToDegreesFromReading(self, reading, key):
+        try:
+            compass = compassDict[reading[key]]
+        except (KeyError):
+            return None
+        
+        return compass
