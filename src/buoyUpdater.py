@@ -14,7 +14,7 @@ class BuoyUpdater:
 
     def update(self, stationID):
         potentialBuoy = self.db.potentialBuoys.find_one({'station_id': stationID})
-         
+        
         if potentialBuoy is None:
             # This is not a valid stationID
             return
@@ -119,14 +119,14 @@ class BuoyUpdater:
             'swell_direction': swellDirection,
             'datetime': wavesDatetime
         }
-         
+        
         # Remove nulls
         reading = {k: v for k, v in reading.items() if v != None}
-         
+        
         # Instantiate model objects
         buoyObject = Buoy(**buoy)
         readingObject = Reading(**reading)
-         
+        
         #readingObject.id = self.db.readings.insert_one(readingObject.mongoDB()).inserted_id
         self.db.readings.update({'station_id': stationID}, readingObject.mongoDB(), upsert = True)
         self.db.buoys.update({'station_id': stationID}, buoyObject.mongoDB(), upsert = True)
