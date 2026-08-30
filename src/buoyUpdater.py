@@ -31,11 +31,19 @@ class BuoyUpdater:
         
         try:
             firstBoxData = urllib2.urlopen("https://www.ndbc.noaa.gov/data/realtime2/" + stationID + ".txt").read(2000)
-            secondBoxData = urllib2.urlopen("https://www.ndbc.noaa.gov/data/realtime2/" + stationID + ".spec").read(2000)
-        except urllib2.HTTPError:
+        except urllib2.URLError:
             print('error caught trying to fetch ' + stationID)
             # TODO make this still update the reading as empty or something
             return
+
+        # The spec data is optional: NDBC's CDN can reject these requests
+        # (it currently 403s .spec fetches from datacenter IPs) and a reading
+        # without swell fields is still worth saving.
+        try:
+            secondBoxData = urllib2.urlopen("https://www.ndbc.noaa.gov/data/realtime2/" + stationID + ".spec").read(2000)
+        except urllib2.URLError:
+            print('spec fetch failed for ' + stationID + ', updating without swell data')
+            secondBoxData = None
         
         # For some stations (e.g. 44008) the first box data is taken every 10 min,
         # but only 1 per hour (usually on the 50 min) has all the data.
@@ -73,26 +81,30 @@ class BuoyUpdater:
             readingValue = latestFullReadingValues[index]
             firstBoxDictionary[label] = readingValue
             
-        lines = secondBoxData.split('\n')
-        firstLine = lines[0]
-        firstLineValues = firstLine.split()
-        
-        readingLine = lines[2]
-        
-        latestFullReadingValues = readingLine.split()
-                
         secondBoxDictionary = {}
-        
-        for index, label in enumerate(firstLineValues):
-            readingValue = latestFullReadingValues[index]
-            secondBoxDictionary[label] = readingValue
+
+        if secondBoxData is not None:
+            lines = secondBoxData.split('\n')
+            firstLine = lines[0]
+            firstLineValues = firstLine.split()
+
+            readingLine = lines[2]
+
+            latestFullReadingValues = readingLine.split()
+
+            for index, label in enumerate(firstLineValues):
+                readingValue = latestFullReadingValues[index]
+                secondBoxDictionary[label] = readingValue
         
         waveHeight = self.feetFromReading(firstBoxDictionary, 'WVHT')
         wavePeriod = self.floatFromReading(firstBoxDictionary, 'DPD')
         waveDirection = self.floatFromReading(firstBoxDictionary, 'MWD')
-        swellHeight = self.feetFromReading(secondBoxDictionary, 'SwH')
-        swellPeriod = self.floatFromReading(secondBoxDictionary, 'SwP')
-        swellDirection = self.compassToDegreesFromReading(secondBoxDictionary, 'SwD') # Are all of these Strings?
+        if secondBoxDictionary:
+            swellHeight = self.feetFromReading(secondBoxDictionary, 'SwH')
+            swellPeriod = self.floatFromReading(secondBoxDictionary, 'SwP')
+            swellDirection = self.compassToDegreesFromReading(secondBoxDictionary, 'SwD') # Are all of these Strings?
+        else:
+            swellHeight, swellPeriod, swellDirection = self.swellFromLatestObs(stationID)
         #2019-10-20T17:50:00Z
         try:
             wavesDatetime = (firstBoxDictionary['#YY'] + 
@@ -131,6 +143,46 @@ class BuoyUpdater:
         self.db.readings.update({'station_id': stationID}, readingObject.mongoDB(), upsert = True)
         self.db.buoys.update({'station_id': stationID}, buoyObject.mongoDB(), upsert = True)
     
+    # Fallback for when the .spec file is unavailable (NDBC's CDN blocks it
+    # from some IPs). The latest_obs file carries the same swell summary in a
+    # human-readable Wave Summary section, with heights already in feet:
+    #   Swell: 1.0 ft
+    #   Period: 7.7 sec
+    #   Direction: E
+    #   Wind Wave: 1.3 ft
+    #   ...
+    def swellFromLatestObs(self, stationID):
+        try:
+            data = urllib2.urlopen("https://www.ndbc.noaa.gov/data/latest_obs/" + stationID + ".txt").read(2000)
+        except urllib2.URLError:
+            print('latest_obs fetch failed for ' + stationID)
+            return (None, None, None)
+
+        height = None
+        period = None
+        direction = None
+        inSwell = False
+        for line in data.split('\n'):
+            line = line.strip()
+            if line.startswith('Swell:'):
+                inSwell = True
+                height = self.floatFromLabeledLine(line)
+            elif line.startswith('Wind Wave:'):
+                inSwell = False
+            elif inSwell and line.startswith('Period:'):
+                period = self.floatFromLabeledLine(line)
+            elif inSwell and line.startswith('Direction:'):
+                direction = compassDict.get(line.split(':', 1)[1].strip())
+
+        return (height, period, direction)
+
+    # Parses lines like 'Swell: 1.0 ft' or 'Period: 7.7 sec'
+    def floatFromLabeledLine(self, line):
+        try:
+            return round(float(line.split(':', 1)[1].split()[0]), 1)
+        except (ValueError, IndexError):
+            return None
+
     def ndbcDictionaryForRequest(self, requestType, stationID):
         payload = {
             'request': 'GetObservation',
